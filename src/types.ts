@@ -22,4 +22,5 @@ export interface KibSettings {
   logoUrl: string;
   secondaryLogoUrl?: string;
   backgroundUrl: string;
+  frontBackgroundUrl?: string;
 }

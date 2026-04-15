@@ -33,7 +33,14 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
       <div className="bg-white p-10 rounded-xl border border-[#E5E7EB] shadow-sm max-w-2xl w-full print:shadow-none print:border-none print:p-0 print:bg-transparent">
         <div className="border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '0 auto' }}>
           {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90 z-0 print-bg-fix"></div>
+          {kibSettings.frontBackgroundUrl ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-90 z-0 print-bg-fix" 
+              style={{ backgroundImage: `url(${kibSettings.frontBackgroundUrl})` }}
+            ></div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90 z-0 print-bg-fix"></div>
+          )}
           
           {/* Decorative Top Accent */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2563EB] to-[#60A5FA] z-20"></div>

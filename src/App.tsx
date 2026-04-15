@@ -45,7 +45,8 @@ export default function App() {
           setKibSettings({ 
             logoUrl: data.logo_url || '', 
             secondaryLogoUrl: data.secondary_logo_url || '',
-            backgroundUrl: data.background_url || '' 
+            backgroundUrl: data.background_url || '',
+            frontBackgroundUrl: data.front_background_url || ''
           });
         }
       } catch (error) {
