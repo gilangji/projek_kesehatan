@@ -190,7 +190,7 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
             alt="Logo" 
             className="w-8 h-8 object-contain"
           />
-          <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">RSKGM BUTON SELATAN</h1>
+          <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">UPTD PUSKESMAS SAMPOLAWA</h1>
         </div>
       </nav>
 

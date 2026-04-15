@@ -56,7 +56,7 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
                 />
               </div>
               <div>
-                <h1 className="text-[10px] font-bold leading-tight text-[#1F2937]">Rumah SAKIT Khusus Gigi dan Mulut</h1>
+                <h1 className="text-[10px] font-bold leading-tight text-[#1F2937]">UPTD PUSKESMAS SAMPOLAWA</h1>
                 <h2 className="text-[8px] font-semibold tracking-wide leading-tight text-[#2563EB]">BUTON SELATAN</h2>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
                 <li>Kartu ini berlaku bagi nama yang tercantum dalam kartu.</li>
                 <li>Harap dibawa setiap kali berobat dan jangan sampai hilang.</li>
                 <li>Setiap pencetakan kartu baru akan dikenakan biaya sesuai ketentuan.</li>
-                <li>Bagi yang menemukan kartu ini harap mengembalikan ke RSKGM Buton Selatan.</li>
+                <li>Bagi yang menemukan kartu ini harap mengembalikan ke UPTD Puskesmas Sampolawa.</li>
               </ul>
            </div>
         </div>

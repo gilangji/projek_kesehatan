@@ -33,7 +33,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
             />
           </div>
         </div>
-        <h2 className="text-[24px] font-semibold text-center text-[#1F2937] mb-8">Login RSKGM</h2>
+        <h2 className="text-[24px] font-semibold text-center text-[#1F2937] mb-8">Login Puskesmas</h2>
         {error && <p className="text-red-500 text-[13px] text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mb-5 relative">

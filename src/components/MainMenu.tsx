@@ -18,7 +18,7 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
             alt="Logo" 
             className="w-8 h-8 object-contain"
           />
-          <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">RSKGM BUTON SELATAN</h1>
+          <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">UPTD PUSKESMAS SAMPOLAWA</h1>
         </div>
         <button onClick={onLogout} className="flex items-center space-x-2 text-[#6B7280] hover:text-[#1F2937] font-medium text-[14px]">
           <LogOut className="w-4 h-4" />
