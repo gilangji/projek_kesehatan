@@ -39,7 +39,7 @@ export default function KIBPrint({ patient, onBack }: KIBPrintProps) {
           <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E7EB]/50 text-[#1F2937] p-2 flex items-center space-x-2 relative z-10 pt-3">
             <div className="w-8 h-8 shrink-0">
               <img 
-                src="/logo.png" 
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
                 alt="Logo Buton Selatan" 
                 className="w-full h-full object-contain"
               />

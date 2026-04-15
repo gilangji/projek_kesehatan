@@ -12,7 +12,7 @@ export default function MainMenu({ onNavigate, onLogout }: MainMenuProps) {
       <nav className="bg-white border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <img 
-            src="/logo.png" 
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
             alt="Logo Buton Selatan" 
             className="w-8 h-8 object-contain"
           />
