@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Patient, KibSettings } from '../types';
 import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, Settings, Image as ImageIcon } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface PatientDataProps {
   onBack: () => void;
@@ -34,10 +35,44 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
   const [formData, setFormData] = useState<Patient>(initialPatientState);
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'background') => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'background') => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // 1. Upload to Supabase Storage (Bucket name: 'kib-assets')
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('kib-assets')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const { data } = supabase.storage
+        .from('kib-assets')
+        .getPublicUrl(fileName);
+
+      // 3. Update State
+      onUpdateKibSettings({ 
+        ...kibSettings, 
+        [type === 'logo' ? 'logoUrl' : 'backgroundUrl']: data.publicUrl 
+      });
+      
+      alert(`Berhasil mengunggah ${type} ke Supabase!`);
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      alert('Gagal mengunggah ke Supabase. Pastikan Anda sudah mengisi kredensial di .env dan membuat bucket "kib-assets" (Public). Menggunakan mode lokal sementara.');
+      
+      // Fallback to local base64
       const reader = new FileReader();
       reader.onloadend = () => {
         onUpdateKibSettings({ 
@@ -46,6 +81,8 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
         });
       };
       reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -157,7 +194,8 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
                         type="file" 
                         accept="image/*"
                         onChange={(e) => handleImageUpload(e, 'logo')}
-                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer"
+                        disabled={isUploading}
+                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
                       />
                     </div>
                     <div>
@@ -166,11 +204,15 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
                         type="file" 
                         accept="image/*"
                         onChange={(e) => handleImageUpload(e, 'background')}
-                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer"
+                        disabled={isUploading}
+                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
                       />
                     </div>
                   </div>
-                  {(kibSettings.logoUrl || kibSettings.backgroundUrl) && (
+                  {isUploading && (
+                    <p className="mt-3 text-[#2563EB] text-xs font-medium animate-pulse">Sedang mengunggah ke Supabase...</p>
+                  )}
+                  {(kibSettings.logoUrl || kibSettings.backgroundUrl) && !isUploading && (
                     <button 
                       onClick={() => onUpdateKibSettings({ logoUrl: '', backgroundUrl: '' })}
                       className="mt-3 text-red-500 hover:text-red-700 text-xs font-medium"
