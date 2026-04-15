@@ -15,9 +15,19 @@ import { supabase } from './lib/supabase';
 type ViewState = 'login' | 'main' | 'patientData' | 'printKIB' | 'settings';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewState>('login');
+  const [currentView, setCurrentView] = useState<ViewState>(() => {
+    const savedView = localStorage.getItem('currentView');
+    // Jika di-refresh saat di halaman cetak, kembalikan ke data pasien agar tidak error karena data pasien kosong
+    if (savedView === 'printKIB') return 'patientData';
+    return (savedView as ViewState) || 'login';
+  });
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [kibSettings, setKibSettings] = useState<KibSettings>({ logoUrl: '', backgroundUrl: '' });
+
+  // Simpan state halaman saat ini ke localStorage setiap kali berubah
+  useEffect(() => {
+    localStorage.setItem('currentView', currentView);
+  }, [currentView]);
 
   // Fetch settings from Supabase on mount
   useEffect(() => {
