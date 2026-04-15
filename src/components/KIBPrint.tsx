@@ -34,10 +34,11 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
         <div className="border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '0 auto' }}>
           {/* Background Gradient */}
           {kibSettings.frontBackgroundUrl ? (
-            <div 
-              className="absolute inset-0 bg-cover bg-center opacity-90 z-0" 
-              style={{ backgroundImage: `url(${kibSettings.frontBackgroundUrl})` }}
-            ></div>
+            <img 
+              src={kibSettings.frontBackgroundUrl}
+              alt="Background Depan"
+              className="absolute inset-0 w-full h-full object-cover opacity-90 z-0" 
+            />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90 z-0"></div>
           )}
@@ -113,10 +114,11 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
         <div className="mt-8 border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '20px auto 0' }}>
            {/* Background Gradient or Custom Image */}
            {kibSettings.backgroundUrl ? (
-             <div 
-               className="absolute inset-0 bg-cover bg-center opacity-90 z-0" 
-               style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
-             ></div>
+             <img 
+               src={kibSettings.backgroundUrl}
+               alt="Background Belakang"
+               className="absolute inset-0 w-full h-full object-cover opacity-90 z-0" 
+             />
            ) : (
              <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 opacity-90 z-0"></div>
            )}
