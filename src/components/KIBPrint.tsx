@@ -58,7 +58,7 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
               </div>
               <div>
                 <h1 className="text-[10px] font-bold leading-tight text-[#1F2937]">UPTD PUSKESMAS SAMPOLAWA</h1>
-                <h2 className="text-[8px] font-semibold tracking-wide leading-tight text-[#2563EB]">BUTON SELATAN</h2>
+                <h2 className="text-[8px] font-semibold tracking-wide leading-tight text-[#1F2937]">BUTON SELATAN</h2>
               </div>
             </div>
             {kibSettings.secondaryLogoUrl && (
