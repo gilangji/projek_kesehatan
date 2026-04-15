@@ -10,23 +10,36 @@ interface MainMenuProps {
 
 export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenuProps) {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
-      <nav className="bg-white border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <img 
-            src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
-            alt="Logo" 
-            className="w-8 h-8 object-contain"
-          />
-          <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">UPTD PUSKESMAS SAMPOLAWA</h1>
+    <div className="min-h-screen flex flex-col relative">
+      {/* Background Image */}
+      {kibSettings.backgroundUrl ? (
+        <div 
+          className="absolute inset-0 bg-cover bg-center z-0" 
+          style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
+        >
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
         </div>
-        <button onClick={onLogout} className="flex items-center space-x-2 text-[#6B7280] hover:text-[#1F2937] font-medium text-[14px]">
-          <LogOut className="w-4 h-4" />
-          <span>Keluar</span>
-        </button>
-      </nav>
-      
-      <main className="flex-1 p-12">
+      ) : (
+        <div className="absolute inset-0 bg-[#F8F9FA] z-0"></div>
+      )}
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <img 
+              src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
+              alt="Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">UPTD PUSKESMAS SAMPOLAWA</h1>
+          </div>
+          <button onClick={onLogout} className="flex items-center space-x-2 text-[#6B7280] hover:text-[#1F2937] font-medium text-[14px]">
+            <LogOut className="w-4 h-4" />
+            <span>Keluar</span>
+          </button>
+        </nav>
+        
+        <main className="flex-1 p-12">
         <header className="mb-10">
           <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">Menu Utama</h1>
           <p className="text-[15px] text-[#6B7280]">Pilih modul untuk melanjutkan proses kerja.</p>
@@ -72,6 +85,7 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
           </button>
         </div>
       </main>
+      </div>
     </div>
   );
 }
