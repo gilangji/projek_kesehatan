@@ -56,7 +56,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
       alert(`Berhasil mengunggah dan menyimpan ${type} secara permanen!`);
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      alert('Gagal mengunggah. Pastikan tabel "settings" dan bucket "kib-assets" sudah dibuat di Supabase.');
+      alert(`Gagal mengunggah. Detail Error: ${error?.message || error?.error_description || JSON.stringify(error)}`);
     } finally {
       setIsUploading(false);
     }
