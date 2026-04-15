@@ -57,6 +57,19 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
               <span className="text-[13px] text-[#6B7280]">Modul dalam pengembangan</span>
             </div>
           </button>
+
+          <button
+            onClick={() => onNavigate('settings')}
+            className="bg-white p-8 rounded-xl border border-[#E5E7EB] hover:border-[#2563EB] transition flex flex-col items-start justify-center space-y-4 text-left"
+          >
+            <div className="bg-[#E0E7FF] p-3 rounded-full">
+              <Settings className="w-6 h-6 text-[#2563EB]" />
+            </div>
+            <div>
+              <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Pengaturan KIB</span>
+              <span className="text-[13px] text-[#6B7280]">Atur logo dan latar belakang kartu</span>
+            </div>
+          </button>
         </div>
       </main>
     </div>
