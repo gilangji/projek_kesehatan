@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Patient } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus } from 'lucide-react';
+import { Patient, KibSettings } from '../types';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, Settings, Image as ImageIcon } from 'lucide-react';
 
 interface PatientDataProps {
   onBack: () => void;
   onPrint: (patient: Patient) => void;
+  kibSettings: KibSettings;
+  onUpdateKibSettings: (settings: KibSettings) => void;
 }
 
 const initialPatientState: Patient = {
@@ -27,10 +29,25 @@ const initialPatientState: Patient = {
   }
 };
 
-export default function PatientData({ onBack, onPrint }: PatientDataProps) {
+export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibSettings }: PatientDataProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [formData, setFormData] = useState<Patient>(initialPatientState);
   const [isEditing, setIsEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'background') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateKibSettings({ 
+          ...kibSettings, 
+          [type === 'logo' ? 'logoUrl' : 'backgroundUrl']: reader.result as string 
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -116,7 +133,54 @@ export default function PatientData({ onBack, onPrint }: PatientDataProps) {
           <div className="p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 flex-1 overflow-y-auto">
             {/* Form Section */}
             <div className="form-section">
-              <h3 className="text-[18px] font-semibold text-[#1F2937] mb-6">Form Data Pasien</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-[18px] font-semibold text-[#1F2937]">Form Data Pasien</h3>
+                <button 
+                  onClick={() => setShowSettings(!showSettings)} 
+                  className="text-[#9CA3AF] hover:text-[#4B5563] transition-colors"
+                  title="Pengaturan Visual KIB"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </div>
+
+              {showSettings && (
+                <div className="mb-6 p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-[13px]">
+                  <h4 className="font-semibold text-[#1F2937] mb-3 flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-[#2563EB]" />
+                    Kustomisasi Kartu KIB
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[#6B7280] mb-1.5">Logo Kustom</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, 'logo')}
+                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[#6B7280] mb-1.5">Background Kustom</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, 'background')}
+                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  {(kibSettings.logoUrl || kibSettings.backgroundUrl) && (
+                    <button 
+                      onClick={() => onUpdateKibSettings({ logoUrl: '', backgroundUrl: '' })}
+                      className="mt-3 text-red-500 hover:text-red-700 text-xs font-medium"
+                    >
+                      Reset ke Default
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-5">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[13px] text-[#6B7280] mb-1.5">No RM</label>

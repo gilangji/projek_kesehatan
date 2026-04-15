@@ -17,3 +17,8 @@ export interface Patient {
     noTelepon: string;
   };
 }
+
+export interface KibSettings {
+  logoUrl: string;
+  backgroundUrl: string;
+}

@@ -1,17 +1,20 @@
 import React from 'react';
-import { Patient } from '../types';
+import { Patient, KibSettings } from '../types';
 import Barcode from 'react-barcode';
 import { ArrowLeft, Printer } from 'lucide-react';
 
 interface KIBPrintProps {
   patient: Patient;
   onBack: () => void;
+  kibSettings: KibSettings;
 }
 
-export default function KIBPrint({ patient, onBack }: KIBPrintProps) {
+export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps) {
   const handlePrint = () => {
     window.print();
   };
+
+  const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png";
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] p-12 flex flex-col items-center">
@@ -29,8 +32,15 @@ export default function KIBPrint({ patient, onBack }: KIBPrintProps) {
       {/* Card Container */}
       <div className="bg-white p-10 rounded-xl border border-[#E5E7EB] shadow-sm max-w-2xl w-full print:shadow-none print:border-none print:p-0 print:bg-transparent">
         <div className="border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '0 auto' }}>
-          {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90"></div>
+          {/* Background Gradient or Custom Image */}
+          {kibSettings.backgroundUrl ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-90" 
+              style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
+            ></div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90"></div>
+          )}
           
           {/* Decorative Top Accent */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2563EB] to-[#60A5FA] z-20"></div>
@@ -39,8 +49,8 @@ export default function KIBPrint({ patient, onBack }: KIBPrintProps) {
           <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E7EB]/50 text-[#1F2937] p-2 flex items-center space-x-2 relative z-10 pt-3">
             <div className="w-8 h-8 shrink-0">
               <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
-                alt="Logo Buton Selatan" 
+                src={kibSettings.logoUrl || defaultLogo} 
+                alt="Logo" 
                 className="w-full h-full object-contain"
               />
             </div>

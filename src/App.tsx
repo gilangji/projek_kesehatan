@@ -3,18 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import MainMenu from './components/MainMenu';
 import PatientData from './components/PatientData';
 import KIBPrint from './components/KIBPrint';
-import { Patient } from './types';
+import { Patient, KibSettings } from './types';
 
 type ViewState = 'login' | 'main' | 'patientData' | 'printKIB';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('login');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [kibSettings, setKibSettings] = useState<KibSettings>(() => {
+    const saved = localStorage.getItem('kibSettings');
+    return saved ? JSON.parse(saved) : { logoUrl: '', backgroundUrl: '' };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kibSettings', JSON.stringify(kibSettings));
+  }, [kibSettings]);
 
   const handleLogin = () => setCurrentView('main');
   const handleLogout = () => setCurrentView('login');
@@ -36,12 +44,15 @@ export default function App() {
         <PatientData 
           onBack={() => setCurrentView('main')} 
           onPrint={handlePrint} 
+          kibSettings={kibSettings}
+          onUpdateKibSettings={setKibSettings}
         />
       )}
       {currentView === 'printKIB' && selectedPatient && (
         <KIBPrint 
           patient={selectedPatient} 
           onBack={() => setCurrentView('patientData')} 
+          kibSettings={kibSettings}
         />
       )}
     </div>
