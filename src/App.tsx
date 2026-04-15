@@ -8,17 +8,44 @@ import Login from './components/Login';
 import MainMenu from './components/MainMenu';
 import PatientData from './components/PatientData';
 import KIBPrint from './components/KIBPrint';
+import Settings from './components/Settings';
 import { Patient, KibSettings } from './types';
+import { supabase } from './lib/supabase';
 
-type ViewState = 'login' | 'main' | 'patientData' | 'printKIB';
+type ViewState = 'login' | 'main' | 'patientData' | 'printKIB' | 'settings';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('login');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [kibSettings, setKibSettings] = useState<KibSettings>(() => {
-    const saved = localStorage.getItem('kibSettings');
-    return saved ? JSON.parse(saved) : { logoUrl: '', backgroundUrl: '' };
-  });
+  const [kibSettings, setKibSettings] = useState<KibSettings>({ logoUrl: '', backgroundUrl: '' });
+
+  // Fetch settings from Supabase on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select('*')
+          .eq('id', 'global')
+          .single();
+          
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+        
+        if (data) {
+          setKibSettings({ 
+            logoUrl: data.logo_url || '', 
+            backgroundUrl: data.background_url || '' 
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching settings from Supabase:', error);
+        // Fallback to local storage if Supabase fails
+        const saved = localStorage.getItem('kibSettings');
+        if (saved) setKibSettings(JSON.parse(saved));
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('kibSettings', JSON.stringify(kibSettings));
@@ -38,14 +65,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {currentView === 'login' && <Login onLogin={handleLogin} />}
-      {currentView === 'main' && <MainMenu onNavigate={handleNavigate} onLogout={handleLogout} />}
+      {currentView === 'login' && <Login onLogin={handleLogin} kibSettings={kibSettings} />}
+      {currentView === 'main' && <MainMenu onNavigate={handleNavigate} onLogout={handleLogout} kibSettings={kibSettings} />}
+      {currentView === 'settings' && (
+        <Settings 
+          onBack={() => setCurrentView('main')} 
+          kibSettings={kibSettings}
+          onUpdateKibSettings={setKibSettings}
+        />
+      )}
       {currentView === 'patientData' && (
         <PatientData 
           onBack={() => setCurrentView('main')} 
           onPrint={handlePrint} 
           kibSettings={kibSettings}
-          onUpdateKibSettings={setKibSettings}
         />
       )}
       {currentView === 'printKIB' && selectedPatient && (

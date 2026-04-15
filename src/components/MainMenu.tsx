@@ -1,19 +1,21 @@
 import React from 'react';
-import { Users, LogOut, FileText } from 'lucide-react';
+import { Users, LogOut, FileText, Settings } from 'lucide-react';
+import { KibSettings } from '../types';
 
 interface MainMenuProps {
   onNavigate: (view: string) => void;
   onLogout: () => void;
+  kibSettings: KibSettings;
 }
 
-export default function MainMenu({ onNavigate, onLogout }: MainMenuProps) {
+export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenuProps) {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
       <nav className="bg-white border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
-            alt="Logo Buton Selatan" 
+            src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
+            alt="Logo" 
             className="w-8 h-8 object-contain"
           />
           <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">RSKGM BUTON SELATAN</h1>

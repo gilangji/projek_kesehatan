@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Patient, KibSettings } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, Settings, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface PatientDataProps {
   onBack: () => void;
   onPrint: (patient: Patient) => void;
   kibSettings: KibSettings;
-  onUpdateKibSettings: (settings: KibSettings) => void;
 }
 
 const initialPatientState: Patient = {
@@ -30,61 +29,73 @@ const initialPatientState: Patient = {
   }
 };
 
-export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibSettings }: PatientDataProps) {
+// Helper to map Supabase row to Patient object
+const mapToPatient = (row: any): Patient => ({
+  noRm: row.no_rm,
+  nama: row.nama,
+  jenisKelamin: row.jenis_kelamin,
+  tanggalLahir: row.tanggal_lahir,
+  umur: row.umur,
+  agama: row.agama,
+  alamat: row.alamat,
+  pendidikan: row.pendidikan,
+  pekerjaan: row.pekerjaan,
+  status: row.status,
+  noTelepon: row.no_telepon,
+  penanggungJawab: {
+    nama: row.pj_nama,
+    hubungan: row.pj_hubungan,
+    alamat: row.pj_alamat,
+    noTelepon: row.pj_no_telepon
+  }
+});
+
+// Helper to map Patient object to Supabase row
+const mapToRow = (p: Patient) => ({
+  no_rm: p.noRm,
+  nama: p.nama,
+  jenis_kelamin: p.jenisKelamin,
+  tanggal_lahir: p.tanggalLahir,
+  umur: p.umur,
+  agama: p.agama,
+  alamat: p.alamat,
+  pendidikan: p.pendidikan,
+  pekerjaan: p.pekerjaan,
+  status: p.status,
+  no_telepon: p.noTelepon,
+  pj_nama: p.penanggungJawab.nama,
+  pj_hubungan: p.penanggungJawab.hubungan,
+  pj_alamat: p.penanggungJawab.alamat,
+  pj_no_telepon: p.penanggungJawab.noTelepon
+});
+
+export default function PatientData({ onBack, onPrint, kibSettings }: PatientDataProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [formData, setFormData] = useState<Patient>(initialPatientState);
   const [isEditing, setIsEditing] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'background') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      // 1. Upload to Supabase Storage (Bucket name: 'kib-assets')
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('kib-assets')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // 2. Get Public URL
-      const { data } = supabase.storage
-        .from('kib-assets')
-        .getPublicUrl(fileName);
-
-      // 3. Update State
-      onUpdateKibSettings({ 
-        ...kibSettings, 
-        [type === 'logo' ? 'logoUrl' : 'backgroundUrl']: data.publicUrl 
-      });
-      
-      alert(`Berhasil mengunggah ${type} ke Supabase!`);
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      alert('Gagal mengunggah ke Supabase. Pastikan Anda sudah mengisi kredensial di .env dan membuat bucket "kib-assets" (Public). Menggunakan mode lokal sementara.');
-      
-      // Fallback to local base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpdateKibSettings({ 
-          ...kibSettings, 
-          [type === 'logo' ? 'logoUrl' : 'backgroundUrl']: reader.result as string 
-        });
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  // Fetch patients from Supabase
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        if (data) {
+          setPatients(data.map(mapToPatient));
+        }
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPatients();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -102,23 +113,37 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.noRm || !formData.nama) {
       alert('No RM dan Nama harus diisi!');
       return;
     }
 
-    if (isEditing) {
-      setPatients(patients.map(p => p.noRm === formData.noRm ? formData : p));
-      setIsEditing(false);
-    } else {
-      if (patients.some(p => p.noRm === formData.noRm)) {
-        alert('No RM sudah ada!');
-        return;
+    try {
+      // Save to Supabase
+      const { error } = await supabase
+        .from('patients')
+        .upsert(mapToRow(formData));
+
+      if (error) throw error;
+
+      // Update local state
+      if (isEditing) {
+        setPatients(patients.map(p => p.noRm === formData.noRm ? formData : p));
+        setIsEditing(false);
+      } else {
+        if (patients.some(p => p.noRm === formData.noRm)) {
+          alert('No RM sudah ada di database!');
+          return;
+        }
+        setPatients([formData, ...patients]);
       }
-      setPatients([...patients, formData]);
+      setFormData(initialPatientState);
+      alert('Data pasien berhasil disimpan!');
+    } catch (error: any) {
+      console.error('Error saving patient:', error);
+      alert('Gagal menyimpan data ke database. Pastikan tabel "patients" sudah dibuat.');
     }
-    setFormData(initialPatientState);
   };
 
   const handleEdit = (patient: Patient) => {
@@ -126,12 +151,24 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
     setIsEditing(true);
   };
 
-  const handleDelete = (noRm: string) => {
+  const handleDelete = async (noRm: string) => {
     if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-      setPatients(patients.filter(p => p.noRm !== noRm));
-      if (formData.noRm === noRm) {
-        setFormData(initialPatientState);
-        setIsEditing(false);
+      try {
+        const { error } = await supabase
+          .from('patients')
+          .delete()
+          .eq('no_rm', noRm);
+
+        if (error) throw error;
+
+        setPatients(patients.filter(p => p.noRm !== noRm));
+        if (formData.noRm === noRm) {
+          setFormData(initialPatientState);
+          setIsEditing(false);
+        }
+      } catch (error: any) {
+        console.error('Error deleting patient:', error);
+        alert('Gagal menghapus data dari database.');
       }
     }
   };
@@ -149,8 +186,8 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
         </button>
         <div className="flex items-center space-x-3">
           <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
-            alt="Logo Buton Selatan" 
+            src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
+            alt="Logo" 
             className="w-8 h-8 object-contain"
           />
           <h1 className="text-[20px] font-bold text-[#2563EB] tracking-tight">RSKGM BUTON SELATAN</h1>
@@ -170,59 +207,8 @@ export default function PatientData({ onBack, onPrint, kibSettings, onUpdateKibS
           <div className="p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 flex-1 overflow-y-auto">
             {/* Form Section */}
             <div className="form-section">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-[18px] font-semibold text-[#1F2937]">Form Data Pasien</h3>
-                <button 
-                  onClick={() => setShowSettings(!showSettings)} 
-                  className="text-[#9CA3AF] hover:text-[#4B5563] transition-colors"
-                  title="Pengaturan Visual KIB"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-              </div>
-
-              {showSettings && (
-                <div className="mb-6 p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-[13px]">
-                  <h4 className="font-semibold text-[#1F2937] mb-3 flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-[#2563EB]" />
-                    Kustomisasi Kartu KIB
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[#6B7280] mb-1.5">Logo Kustom</label>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, 'logo')}
-                        disabled={isUploading}
-                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#6B7280] mb-1.5">Background Kustom</label>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, 'background')}
-                        disabled={isUploading}
-                        className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
-                  {isUploading && (
-                    <p className="mt-3 text-[#2563EB] text-xs font-medium animate-pulse">Sedang mengunggah ke Supabase...</p>
-                  )}
-                  {(kibSettings.logoUrl || kibSettings.backgroundUrl) && !isUploading && (
-                    <button 
-                      onClick={() => onUpdateKibSettings({ logoUrl: '', backgroundUrl: '' })}
-                      className="mt-3 text-red-500 hover:text-red-700 text-xs font-medium"
-                    >
-                      Reset ke Default
-                    </button>
-                  )}
-                </div>
-              )}
-
+              <h3 className="text-[18px] font-semibold text-[#1F2937] mb-6">Form Data Pasien</h3>
+              
               <div className="grid grid-cols-2 gap-5">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[13px] text-[#6B7280] mb-1.5">No RM</label>

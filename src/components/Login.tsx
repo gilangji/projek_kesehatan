@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Lock, User } from 'lucide-react';
+import { KibSettings } from '../types';
 
 interface LoginProps {
   onLogin: () => void;
+  kibSettings: KibSettings;
 }
 
-export default function Login({ onLogin }: LoginProps) {
+export default function Login({ onLogin, kibSettings }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,8 +27,8 @@ export default function Login({ onLogin }: LoginProps) {
         <div className="flex justify-center mb-8">
           <div className="w-24 h-24">
             <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png" 
-              alt="Logo Buton Selatan" 
+              src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
+              alt="Logo" 
               className="w-full h-full object-contain"
             />
           </div>
