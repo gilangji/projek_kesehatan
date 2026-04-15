@@ -46,18 +46,29 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2563EB] to-[#60A5FA] z-20"></div>
 
           {/* Header */}
-          <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E7EB]/50 text-[#1F2937] p-2 flex items-center space-x-2 relative z-10 pt-3">
-            <div className="w-8 h-8 shrink-0">
-              <img 
-                src={kibSettings.logoUrl || defaultLogo} 
-                alt="Logo" 
-                className="w-full h-full object-contain"
-              />
+          <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E7EB]/50 text-[#1F2937] p-2 flex items-center justify-between relative z-10 pt-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 shrink-0">
+                <img 
+                  src={kibSettings.logoUrl || defaultLogo} 
+                  alt="Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-[10px] font-bold leading-tight text-[#1F2937]">Rumah SAKIT Khusus Gigi dan Mulut</h1>
+                <h2 className="text-[8px] font-semibold tracking-wide leading-tight text-[#2563EB]">BUTON SELATAN</h2>
+              </div>
             </div>
-            <div>
-              <h1 className="text-[10px] font-bold leading-tight text-[#1F2937]">Rumah SAKIT Khusus Gigi dan Mulut</h1>
-              <h2 className="text-[8px] font-semibold tracking-wide leading-tight text-[#2563EB]">BUTON SELATAN</h2>
-            </div>
+            {kibSettings.secondaryLogoUrl && (
+              <div className="w-8 h-8 shrink-0 ml-2">
+                <img 
+                  src={kibSettings.secondaryLogoUrl} 
+                  alt="Logo Kanan" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            )}
           </div>
 
           {/* Body */}

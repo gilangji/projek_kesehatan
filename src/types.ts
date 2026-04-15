@@ -20,5 +20,6 @@ export interface Patient {
 
 export interface KibSettings {
   logoUrl: string;
+  secondaryLogoUrl?: string;
   backgroundUrl: string;
 }

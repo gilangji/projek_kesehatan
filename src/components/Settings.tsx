@@ -17,7 +17,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
     setLocalSettings(kibSettings);
   }, [kibSettings]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'background') => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'secondaryLogo' | 'background') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -38,7 +38,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
       
       const newSettings = { 
         ...localSettings, 
-        [type === 'logo' ? 'logoUrl' : 'backgroundUrl']: data.publicUrl 
+        [type === 'logo' ? 'logoUrl' : type === 'secondaryLogo' ? 'secondaryLogoUrl' : 'backgroundUrl']: data.publicUrl 
       };
       
       setLocalSettings(newSettings);
@@ -47,6 +47,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
       const { error: dbError } = await supabase.from('settings').upsert({
         id: 'global',
         logo_url: newSettings.logoUrl,
+        secondary_logo_url: newSettings.secondaryLogoUrl,
         background_url: newSettings.backgroundUrl
       });
 
@@ -100,12 +101,12 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Logo Upload */}
             <div className="border border-[#E5E7EB] rounded-lg p-6 bg-[#F9FAFB]">
               <h3 className="font-semibold text-[#1F2937] mb-4 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-[#2563EB]" />
-                Logo Rumah Sakit
+                Logo Kiri (Utama)
               </h3>
               
               {localSettings.logoUrl ? (
@@ -122,6 +123,34 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
                     type="file" 
                     accept="image/*"
                     onChange={(e) => handleImageUpload(e, 'logo')}
+                    disabled={isUploading}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Secondary Logo Upload */}
+            <div className="border border-[#E5E7EB] rounded-lg p-6 bg-[#F9FAFB]">
+              <h3 className="font-semibold text-[#1F2937] mb-4 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[#2563EB]" />
+                Logo Kanan (Puskesmas/Lainnya)
+              </h3>
+              
+              {localSettings.secondaryLogoUrl ? (
+                <div className="flex flex-col items-center justify-center p-6 bg-white border border-[#E5E7EB] rounded-md mb-4">
+                  <img src={localSettings.secondaryLogoUrl} alt="Logo Kanan Terkunci" className="h-24 object-contain mb-3" />
+                  <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded">
+                    <Lock className="w-3 h-3" /> Permanen
+                  </span>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <label className="block text-[13px] text-[#6B7280] mb-2">Pilih file gambar (PNG/JPG)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'secondaryLogo')}
                     disabled={isUploading}
                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#E0E7FF] file:text-[#2563EB] hover:file:bg-blue-100 cursor-pointer disabled:opacity-50"
                   />
