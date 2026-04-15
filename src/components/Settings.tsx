@@ -56,7 +56,12 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
       alert(`Berhasil mengunggah dan menyimpan ${type} secara permanen!`);
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      alert(`Gagal mengunggah. Detail Error: ${error?.message || error?.error_description || JSON.stringify(error)}`);
+      const errorMsg = error?.message || error?.error_description || JSON.stringify(error);
+      if (errorMsg.includes('Failed to fetch')) {
+        alert('Gagal mengunggah (Failed to fetch). Ini terjadi karena Kunci Supabase belum dimasukkan ke dalam aplikasi. Silakan berikan URL dan Anon Key Supabase Anda kepada AI, atau masukkan di Environment Variables Vercel.');
+      } else {
+        alert(`Gagal mengunggah. Detail Error: ${errorMsg}`);
+      }
     } finally {
       setIsUploading(false);
     }
