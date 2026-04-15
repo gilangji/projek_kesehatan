@@ -35,11 +35,11 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
           {/* Background Gradient or Custom Image */}
           {kibSettings.backgroundUrl ? (
             <div 
-              className="absolute inset-0 bg-cover bg-center opacity-90" 
+              className="absolute inset-0 bg-cover bg-center opacity-90 z-0 print-bg-fix" 
               style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
             ></div>
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-90 z-0 print-bg-fix"></div>
           )}
           
           {/* Decorative Top Accent */}
@@ -101,7 +101,7 @@ export default function KIBPrint({ patient, onBack, kibSettings }: KIBPrintProps
         {/* Instructions Card (Back of card or separate info) */}
         <div className="mt-8 border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '20px auto 0' }}>
            {/* Background Gradient */}
-           <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 opacity-90"></div>
+           <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 opacity-90 z-0 print-bg-fix"></div>
            
            {/* Decorative Top Accent */}
            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#9CA3AF] to-[#D1D5DB] z-20"></div>
