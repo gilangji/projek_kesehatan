@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, LogOut, FileText, Settings } from 'lucide-react';
+import { Users, LogOut, FileText, Settings, UserPlus, CreditCard, Printer } from 'lucide-react';
 import { KibSettings } from '../types';
 
 interface MainMenuProps {
@@ -17,7 +17,7 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
           className="absolute inset-0 bg-cover bg-center z-0" 
           style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
         >
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
         </div>
       ) : (
         <div className="absolute inset-0 bg-[#F8F9FA] z-0"></div>
@@ -39,52 +39,66 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
           </button>
         </nav>
         
-        <main className="flex-1 p-12">
-        <header className="mb-10">
-          <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">Menu Utama</h1>
-          <p className="text-[15px] text-[#6B7280]">Pilih modul untuk melanjutkan proses kerja.</p>
-        </header>
+        <main className="flex-1 p-8 lg:p-12 max-w-7xl mx-auto w-full">
+          <header className="mb-10">
+            <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">Menu Utama</h1>
+            <p className="text-[15px] text-[#6B7280]">Pilih modul untuk melanjutkan proses kerja.</p>
+          </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <button
-            onClick={() => onNavigate('patientData')}
-            className="bg-white p-8 rounded-xl border border-[#E5E7EB] hover:border-[#2563EB] transition flex flex-col items-start justify-center space-y-4 text-left"
-          >
-            <div className="bg-[#E0E7FF] p-3 rounded-full">
-              <Users className="w-6 h-6 text-[#2563EB]" />
-            </div>
-            <div>
-              <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Data Pasien</span>
-              <span className="text-[13px] text-[#6B7280]">Kelola data dan cetak KIB</span>
-            </div>
-          </button>
-          
-          <button
-            className="bg-white p-8 rounded-xl border border-[#E5E7EB] opacity-60 cursor-not-allowed flex flex-col items-start justify-center space-y-4 text-left"
-          >
-            <div className="bg-[#E0E7FF] p-3 rounded-full">
-              <FileText className="w-6 h-6 text-[#2563EB]" />
-            </div>
-            <div>
-              <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Laporan</span>
-              <span className="text-[13px] text-[#6B7280]">Modul dalam pengembangan</span>
-            </div>
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <button
+              onClick={() => onNavigate('patientInput')}
+              className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
+            >
+              <div className="bg-[#E0E7FF] group-hover:bg-[#DBEAFE] p-3 rounded-full transition">
+                <UserPlus className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <div>
+                <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Input Data Pasien</span>
+                <span className="text-[13px] text-[#6B7280]">Registrasi form pasien baru</span>
+              </div>
+            </button>
+            
+            <button
+              onClick={() => onNavigate('patientList')}
+              className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
+            >
+              <div className="bg-[#E0E7FF] group-hover:bg-[#DBEAFE] p-3 rounded-full transition">
+                <Users className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <div>
+                <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Daftar Pasien</span>
+                <span className="text-[13px] text-[#6B7280]">Lihat, edit, dan hapus data</span>
+              </div>
+            </button>
 
-          <button
-            onClick={() => onNavigate('settings')}
-            className="bg-white p-8 rounded-xl border border-[#E5E7EB] hover:border-[#2563EB] transition flex flex-col items-start justify-center space-y-4 text-left"
-          >
-            <div className="bg-[#E0E7FF] p-3 rounded-full">
-              <Settings className="w-6 h-6 text-[#2563EB]" />
-            </div>
-            <div>
-              <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Pengaturan KIB</span>
-              <span className="text-[13px] text-[#6B7280]">Atur logo dan latar belakang kartu</span>
-            </div>
-          </button>
-        </div>
-      </main>
+            <button
+              onClick={() => onNavigate('printMenu')}
+              className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
+            >
+              <div className="bg-[#E0E7FF] group-hover:bg-[#DBEAFE] p-3 rounded-full transition">
+                <Printer className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <div>
+                <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Cetak KIB & Laporan</span>
+                <span className="text-[13px] text-[#6B7280]">Cetak kartu berobat dan dokumen A4</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onNavigate('settings')}
+              className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
+            >
+              <div className="bg-[#E0E7FF] group-hover:bg-[#DBEAFE] p-3 rounded-full transition">
+                <Settings className="w-6 h-6 text-[#2563EB]" />
+              </div>
+              <div>
+                <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Pengaturan KIB</span>
+                <span className="text-[13px] text-[#6B7280]">Atur logo dan latar belakang</span>
+              </div>
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );

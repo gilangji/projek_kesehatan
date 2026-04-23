@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Patient, KibSettings } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface PatientDataProps {
+  mode: 'input' | 'list' | 'printMenu';
   onBack: () => void;
-  onPrint: (patient: Patient) => void;
+  onPrint: (patient: Patient, format: 'card' | 'document') => void;
   kibSettings: KibSettings;
 }
 
@@ -29,7 +30,6 @@ const initialPatientState: Patient = {
   }
 };
 
-// Helper to map Supabase row to Patient object
 const mapToPatient = (row: any): Patient => ({
   noRm: row.no_rm,
   nama: row.nama,
@@ -50,7 +50,6 @@ const mapToPatient = (row: any): Patient => ({
   }
 });
 
-// Helper to map Patient object to Supabase row
 const mapToRow = (p: Patient) => ({
   no_rm: p.noRm,
   nama: p.nama,
@@ -69,13 +68,18 @@ const mapToRow = (p: Patient) => ({
   pj_no_telepon: p.penanggungJawab.noTelepon
 });
 
-export default function PatientData({ onBack, onPrint, kibSettings }: PatientDataProps) {
+export default function PatientData({ mode, onBack, onPrint, kibSettings }: PatientDataProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [formData, setFormData] = useState<Patient>(initialPatientState);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState(mode);
 
-  // Fetch patients from Supabase
+  // Allow internal switching (e.g. from list to edit)
+  useEffect(() => {
+    setViewMode(mode);
+  }, [mode]);
+
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -120,35 +124,35 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
     }
 
     try {
-      // Save to Supabase
       const { error } = await supabase
         .from('patients')
         .upsert(mapToRow(formData));
 
       if (error) throw error;
 
-      // Update local state
       if (isEditing) {
         setPatients(patients.map(p => p.noRm === formData.noRm ? formData : p));
         setIsEditing(false);
+        setViewMode('list'); // Go back to list after edit
       } else {
         if (patients.some(p => p.noRm === formData.noRm)) {
           alert('No RM sudah ada di database!');
           return;
         }
         setPatients([formData, ...patients]);
+        setFormData(initialPatientState);
       }
-      setFormData(initialPatientState);
       alert('Data pasien berhasil disimpan!');
     } catch (error: any) {
       console.error('Error saving patient:', error);
-      alert('Gagal menyimpan data ke database. Pastikan tabel "patients" sudah dibuat.');
+      alert('Gagal menyimpan data ke database.');
     }
   };
 
   const handleEdit = (patient: Patient) => {
     setFormData(patient);
     setIsEditing(true);
+    setViewMode('input');
   };
 
   const handleDelete = async (noRm: string) => {
@@ -178,6 +182,20 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
     setIsEditing(false);
   };
 
+  const getTitle = () => {
+    if (viewMode === 'input') return isEditing ? 'Edit Data Pasien' : 'Input Data Pasien';
+    if (viewMode === 'list') return 'Daftar Data Pasien';
+    if (viewMode === 'printMenu') return 'Cetak KIB & Dokumen';
+    return '';
+  };
+
+  const getSubtitle = () => {
+    if (viewMode === 'input') return 'Form registrasi data pasien baru';
+    if (viewMode === 'list') return 'Kelola profil pasien';
+    if (viewMode === 'printMenu') return 'Pilih pasien untuk mencetak kartu KIB atau laporan lengkap';
+    return '';
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
       <nav className="bg-white border-b border-[#E5E7EB] px-8 py-5 flex items-center space-x-4">
@@ -194,28 +212,26 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
         </div>
       </nav>
 
-      <main className="flex-1 p-8 lg:p-12 flex flex-col">
+      <main className="flex-1 p-8 lg:p-12 flex flex-col max-w-7xl mx-auto w-full">
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">Data Pasien</h1>
-            <p className="text-[15px] text-[#6B7280]">Manajemen data pasien dan pencetakan KIB</p>
+            <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">{getTitle()}</h1>
+            <p className="text-[15px] text-[#6B7280]">{getSubtitle()}</p>
           </div>
           <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E0E7FF] text-[#2563EB]">MODUL AKTIF</span>
         </header>
 
         <div className="bg-white border border-[#E5E7EB] rounded-xl flex-1 flex flex-col overflow-hidden">
-          <div className="p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 flex-1 overflow-y-auto">
-            {/* Form Section */}
-            <div className="form-section">
-              <h3 className="text-[18px] font-semibold text-[#1F2937] mb-6">Form Data Pasien</h3>
-              
+          
+          {viewMode === 'input' && (
+            <div className="p-8 lg:p-10 flex-1 overflow-y-auto w-full max-w-4xl mx-auto">
               <div className="grid grid-cols-2 gap-5">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[13px] text-[#6B7280] mb-1.5">No RM</label>
+                  <label className="block text-[13px] text-[#6B7280] mb-1.5">No RM <span className="text-red-500">*</span></label>
                   <input type="text" name="noRm" value={formData.noRm} onChange={handleInputChange} disabled={isEditing} className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[13px] text-[#6B7280] mb-1.5">Nama Pasien</label>
+                  <label className="block text-[13px] text-[#6B7280] mb-1.5">Nama Pasien <span className="text-red-500">*</span></label>
                   <input type="text" name="nama" value={formData.nama} onChange={handleInputChange} className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -281,8 +297,8 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
                 </div>
               </div>
 
-              <h3 className="text-[18px] font-semibold text-[#1F2937] mt-8 mb-6">Penanggung Jawab</h3>
-              <div className="grid grid-cols-2 gap-5">
+              <h3 className="text-[18px] font-semibold text-[#1F2937] mt-8 mb-6 border-b pb-2">Penanggung Jawab</h3>
+              <div className="grid grid-cols-2 gap-5 mb-8">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[13px] text-[#6B7280] mb-1.5">Nama</label>
                   <input type="text" name="pj_nama" value={formData.penanggungJawab.nama} onChange={handleInputChange} className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" />
@@ -301,63 +317,93 @@ export default function PatientData({ onBack, onPrint, kibSettings }: PatientDat
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Table Section */}
-            <div className="summary-section">
-              <div className="bg-[#F9FAFB] p-6 rounded-xl border border-[#E5E7EB] h-full flex flex-col">
-                <h4 className="text-[14px] font-semibold text-[#1F2937] mb-5">Daftar Pasien</h4>
-                <div className="overflow-y-auto flex-1">
-                  <table className="w-full text-[14px]">
-                    <thead>
-                      <tr className="text-[#6B7280] border-b border-[#E5E7EB]">
-                        <th className="pb-3 text-left font-medium">No RM</th>
-                        <th className="pb-3 text-left font-medium">Nama</th>
-                        <th className="pb-3 text-right font-medium">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {patients.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="py-6 text-center text-[#6B7280]">Belum ada data</td>
-                        </tr>
-                      ) : (
-                        patients.map((p) => (
-                          <tr key={p.noRm} className="border-b border-[#E5E7EB] last:border-0">
-                            <td className="py-3 text-[#1F2937] font-medium">{p.noRm}</td>
-                            <td className="py-3 text-[#6B7280]">{p.nama}</td>
-                            <td className="py-3 text-right">
-                              <button onClick={() => handleEdit(p)} className="text-[#2563EB] hover:text-blue-800 mr-3">
-                                <Edit className="w-4 h-4 inline" />
-                              </button>
-                              <button onClick={() => onPrint(p)} className="text-[#10B981] hover:text-emerald-700">
-                                <Printer className="w-4 h-4 inline" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+          {(viewMode === 'list' || viewMode === 'printMenu') && (
+            <div className="p-8 lg:p-10 flex-1 overflow-y-auto">
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <p className="text-gray-500">Memuat data...</p>
                 </div>
-              </div>
+              ) : (
+                <table className="w-full text-[14px]">
+                  <thead>
+                    <tr className="text-[#6B7280] border-b border-[#E5E7EB]">
+                      <th className="pb-3 text-left font-medium">No RM</th>
+                      <th className="pb-3 text-left font-medium">Nama Pasien</th>
+                      <th className="pb-3 text-left font-medium hidden sm:table-cell">L/P</th>
+                      <th className="pb-3 text-left font-medium hidden md:table-cell">Tanggal Lahir</th>
+                      <th className="pb-3 text-right font-medium">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {patients.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-[#6B7280]">Belum ada data pasien terdaftar</td>
+                      </tr>
+                    ) : (
+                      patients.map((p) => (
+                        <tr key={p.noRm} className="border-b border-[#E5E7EB] last:border-0 hover:bg-gray-50 transition">
+                          <td className="py-4 text-[#1F2937] font-semibold">{p.noRm}</td>
+                          <td className="py-4 text-[#1F2937]">{p.nama}</td>
+                          <td className="py-4 text-[#6B7280] hidden sm:table-cell">{p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}</td>
+                          <td className="py-4 text-[#6B7280] hidden md:table-cell">{p.tanggalLahir}</td>
+                          <td className="py-4 text-right">
+                            {viewMode === 'list' ? (
+                              <div className="flex justify-end items-center space-x-3">
+                                <button onClick={() => handleEdit(p)} className="flex items-center space-x-1 text-[#2563EB] hover:text-blue-800" title="Edit">
+                                  <Edit className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </button>
+                                <button onClick={() => handleDelete(p.noRm)} className="flex items-center space-x-1 text-red-600 hover:text-red-800" title="Hapus">
+                                  <Trash2 className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Hapus</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end items-center gap-2">
+                                <button 
+                                  onClick={() => onPrint(p, 'card')} 
+                                  className="flex items-center space-x-2 text-[#2563EB] bg-[#DBEAFE] hover:bg-blue-200 px-3 py-2 rounded-md transition ml-auto font-medium"
+                                  title="Cetak Kartu KIB"
+                                >
+                                  <CreditCard className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Kartu</span>
+                                </button>
+                                <button 
+                                  onClick={() => onPrint(p, 'document')} 
+                                  className="flex items-center space-x-2 text-[#10B981] bg-[#D1FAE5] hover:bg-emerald-200 px-3 py-2 rounded-md transition font-medium"
+                                  title="Cetak Laporan Lengkap"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                  <span className="hidden sm:inline">Dokumen</span>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
-          </div>
+          )}
 
-          <div className="px-10 py-6 border-t border-[#E5E7EB] flex justify-end gap-4 bg-white">
-            <button onClick={handleNew} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-gray-50 transition">
-              Baru
-            </button>
-            {isEditing && (
-              <button onClick={() => handleDelete(formData.noRm)} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-white border border-[#E5E7EB] text-red-600 hover:bg-red-50 transition">
-                Hapus
-              </button>
+          <div className="px-10 py-6 border-t border-[#E5E7EB] flex justify-end gap-3 bg-white">
+            {viewMode === 'input' && (
+              <>
+                <button onClick={handleNew} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-gray-50 transition">
+                  Kosongkan Form
+                </button>
+                <button onClick={handleSave} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
+                  <Save className="w-4 h-4" /> Simpan Data
+                </button>
+              </>
             )}
-            <button onClick={handleSave} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition">
-              Simpan Data
-            </button>
-            {formData.noRm && (
-              <button onClick={() => onPrint(formData)} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#10B981] text-white hover:bg-emerald-600 transition">
-                Cetak KIB
+            {viewMode === 'list' && (
+              <button onClick={() => { handleNew(); setViewMode('input'); }} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Tambah Pasien Baru
               </button>
             )}
           </div>
