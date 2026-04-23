@@ -28,8 +28,8 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
         
         <main className="flex-1 p-8 lg:p-12 max-w-7xl mx-auto w-full">
           <header className="mb-10">
-            <h1 className="text-[28px] font-semibold text-[#1F2937] mb-2">Menu Utama</h1>
-            <p className="text-[15px] text-[#6B7280]">Pilih modul untuk melanjutkan proses kerja.</p>
+            <h1 className={`text-[28px] font-semibold mb-2 ${kibSettings.backgroundUrl ? 'text-white drop-shadow-md' : 'text-[#1F2937]'}`}>Menu Utama</h1>
+            <p className={`text-[15px] ${kibSettings.backgroundUrl ? 'text-white/90 drop-shadow' : 'text-[#6B7280]'}`}>Pilih modul untuk melanjutkan proses kerja.</p>
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
