@@ -85,7 +85,7 @@ export default function App() {
           className="fixed inset-0 bg-cover bg-center z-0" 
           style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
         >
-          <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-sm"></div>
+          <div className="absolute inset-0 bg-white/[0.03]"></div>
         </div>
       ) : (
         <div className="fixed inset-0 bg-[#F8F9FA] z-0"></div>
