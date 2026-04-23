@@ -20,7 +20,7 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
   const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png";
 
   return (
-    <div className="flex-1 p-8 md:p-12 flex flex-col items-center">
+    <div className="flex-1 p-8 md:p-12 flex flex-col items-center print:bg-white print:p-0">
       <div className="w-full max-w-3xl mb-8 flex justify-between items-center print:hidden">
         <button onClick={onBack} className="flex items-center space-x-2 text-[#6B7280] hover:text-[#1F2937] bg-white border border-[#E5E7EB] px-6 py-2.5 rounded-md text-[14px] font-semibold transition shadow-sm">
           <ArrowLeft className="w-4 h-4" />

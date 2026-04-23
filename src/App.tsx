@@ -78,17 +78,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col bg-[#F8F9FA]">
+    <div className="min-h-screen relative flex flex-col bg-[#F8F9FA] print:bg-white">
       {/* Global Unified Background */}
       {kibSettings.backgroundUrl ? (
         <div 
-          className="fixed inset-0 bg-cover bg-center z-0" 
+          className="fixed inset-0 bg-cover bg-center z-0 print:hidden" 
           style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
         >
           <div className="absolute inset-0 bg-white/[0.03]"></div>
         </div>
       ) : (
-        <div className="fixed inset-0 bg-[#F8F9FA] z-0"></div>
+        <div className="fixed inset-0 bg-[#F8F9FA] z-0 print:hidden"></div>
       )}
 
       <div className="relative z-10 flex-1 flex flex-col">
