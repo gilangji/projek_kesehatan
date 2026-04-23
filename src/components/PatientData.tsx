@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Patient, KibSettings } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface PatientDataProps {
@@ -80,6 +80,7 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState(mode);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Allow internal switching (e.g. from list to edit)
   useEffect(() => {
@@ -201,6 +202,11 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
     if (viewMode === 'printMenu') return 'Pilih pasien untuk mencetak kartu KIB atau laporan lengkap';
     return '';
   };
+
+  const filteredPatients = patients.filter(p => 
+    p.noRm.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.nama.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="flex-1 flex flex-col">
@@ -334,7 +340,38 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
           )}
 
           {(viewMode === 'list' || viewMode === 'printMenu') && (
-            <div className="p-8 lg:p-10 flex-1 overflow-y-auto">
+            <div className="p-8 lg:p-10 flex-1 overflow-y-auto flex flex-col">
+              <div className="mb-6 relative w-full max-w-md">
+                <Search className="absolute left-3.5 top-3 text-[#9CA3AF] w-5 h-5" />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Cari No RM / Nama atau Scan Barcode di sini..."
+                  className="w-full pl-11 pr-4 py-2.5 bg-[#F8F9FA] border border-[#E5E7EB] rounded-lg text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-shadow"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const query = searchQuery.trim().toLowerCase();
+                      if (query) {
+                        // Cari pasien dengan No RM yang persis sama dengan hasil scan
+                        const exactMatch = patients.find(p => p.noRm.toLowerCase() === query);
+                        if (exactMatch) {
+                          if (viewMode === 'list') {
+                            handleEdit(exactMatch);
+                            setSearchQuery(''); // Kosongkan kembali pencarian
+                          } else if (viewMode === 'printMenu') {
+                            onPrint(exactMatch, 'document');
+                            setSearchQuery('');
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+
               {isLoading ? (
                 <div className="flex justify-center py-12">
                   <p className="text-gray-500">Memuat data...</p>
@@ -351,12 +388,14 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
                     </tr>
                   </thead>
                   <tbody>
-                    {patients.length === 0 ? (
+                    {filteredPatients.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-[#6B7280]">Belum ada data pasien terdaftar</td>
+                        <td colSpan={5} className="py-8 text-center text-[#6B7280]">
+                          {searchQuery ? 'Data pasien tidak ditemukan.' : 'Belum ada data pasien terdaftar'}
+                        </td>
                       </tr>
                     ) : (
-                      patients.map((p) => (
+                      filteredPatients.map((p) => (
                         <tr key={p.noRm} className="border-b border-[#E5E7EB] last:border-0 hover:bg-gray-50 transition">
                           <td className="py-4 text-[#1F2937] font-semibold">{p.noRm}</td>
                           <td className="py-4 text-[#1F2937]">{p.nama}</td>
