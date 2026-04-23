@@ -10,6 +10,8 @@ export interface Patient {
   pekerjaan: string;
   status: string;
   noTelepon: string;
+  laporanDokter: string;
+  ruangan: string;
   penanggungJawab: {
     nama: string;
     hubungan: string;

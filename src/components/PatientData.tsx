@@ -22,6 +22,8 @@ const initialPatientState: Patient = {
   pekerjaan: '',
   status: '',
   noTelepon: '',
+  laporanDokter: '',
+  ruangan: '',
   penanggungJawab: {
     nama: '',
     hubungan: '',
@@ -42,6 +44,8 @@ const mapToPatient = (row: any): Patient => ({
   pekerjaan: row.pekerjaan,
   status: row.status,
   noTelepon: row.no_telepon,
+  laporanDokter: row.laporan_dokter || '',
+  ruangan: row.ruangan || '',
   penanggungJawab: {
     nama: row.pj_nama,
     hubungan: row.pj_hubungan,
@@ -62,6 +66,8 @@ const mapToRow = (p: Patient) => ({
   pekerjaan: p.pekerjaan,
   status: p.status,
   no_telepon: p.noTelepon,
+  laporan_dokter: p.laporanDokter,
+  ruangan: p.ruangan,
   pj_nama: p.penanggungJawab.nama,
   pj_hubungan: p.penanggungJawab.hubungan,
   pj_alamat: p.penanggungJawab.alamat,
@@ -292,8 +298,16 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
                   </select>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[13px] text-[#6B7280] mb-1.5">Ruangan <span className="text-red-500">*</span></label>
+                  <input type="text" name="ruangan" value={formData.ruangan} onChange={handleInputChange} placeholder="Contoh: Poli Umum, IGD, dll." className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-[13px] text-[#6B7280] mb-1.5">No Telepon</label>
                   <input type="text" name="noTelepon" value={formData.noTelepon} onChange={handleInputChange} className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[13px] text-[#6B7280] mb-1.5">Laporan Dokter / Keluhan Utama</label>
+                  <textarea name="laporanDokter" value={formData.laporanDokter} onChange={handleInputChange} rows={3} placeholder="Tuliskan keluhan atau laporan dokter di sini..." className="w-full bg-[#F8F9FA] border border-[#E5E7EB] rounded-md p-3 text-[14px] text-[#1F2937] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"></textarea>
                 </div>
               </div>
 

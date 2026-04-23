@@ -197,6 +197,10 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
                     <td className="py-3 font-bold text-black">: {patient.noRm}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
+                    <td className="py-3 font-semibold text-[#4B5563]">Ruangan</td>
+                    <td className="py-3 font-bold text-black">: {patient.ruangan || '-'}</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
                     <td className="py-3 font-semibold text-[#4B5563]">Nama Lengkap</td>
                     <td className="py-3 text-black">: {patient.nama}</td>
                   </tr>
@@ -232,6 +236,12 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
                     <td className="py-3 font-semibold text-[#4B5563] align-top">Alamat Domisili</td>
                     <td className="py-3 text-black align-top">: {patient.alamat}</td>
                   </tr>
+                  {patient.laporanDokter && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 font-semibold text-[#4B5563] align-top">Laporan Dokter / Keluhan</td>
+                      <td className="py-3 text-black align-top">: {patient.laporanDokter}</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
