@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Patient, KibSettings } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard, Search, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard, Search, Upload, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import * as xlsx from 'xlsx';
 
@@ -184,6 +184,41 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
       }
     };
     reader.readAsBinaryString(file);
+  };
+
+  const handleExport = () => {
+    if (patients.length === 0) {
+      alert('Tidak ada data pasien untuk diekspor.');
+      return;
+    }
+
+    const exportData = patients.map((p) => ({
+      'No RM': p.noRm,
+      'Nama Pasien': p.nama,
+      'Jenis Kelamin': p.jenisKelamin,
+      'Tanggal Lahir': p.tanggalLahir,
+      'Umur': p.umur,
+      'Agama': p.agama,
+      'Alamat': p.alamat,
+      'Pendidikan': p.pendidikan,
+      'Pekerjaan': p.pekerjaan,
+      'Status': p.status,
+      'Ruangan': p.ruangan,
+      'No Telepon': p.noTelepon,
+      'Laporan Dokter': p.laporanDokter,
+      'PJ Nama': p.penanggungJawab.nama,
+      'PJ Hubungan': p.penanggungJawab.hubungan,
+      'PJ Alamat': p.penanggungJawab.alamat,
+      'PJ No Telepon': p.penanggungJawab.noTelepon,
+    }));
+
+    const ws = xlsx.utils.json_to_sheet(exportData);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, "Data Pasien");
+    
+    // Generate file name with current date
+    const date = new Date().toISOString().split('T')[0];
+    xlsx.writeFile(wb, `Data_Pasien_${date}.xlsx`);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -541,7 +576,14 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
                     className="px-4 py-2.5 rounded-md text-[14px] font-medium bg-[#F3F4F6] text-[#4B5563] hover:bg-[#E5E7EB] transition flex items-center gap-2 border border-[#D1D5DB]"
                     title="Impor data dari CSV atau Excel"
                   >
-                    <Upload className="w-4 h-4" /> Impor Data (CSV/Excel)
+                    <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Impor Data</span>
+                  </button>
+                  <button 
+                    onClick={handleExport} 
+                    className="px-4 py-2.5 rounded-md text-[14px] font-medium bg-[#F3F4F6] text-[#4B5563] hover:bg-[#E5E7EB] transition flex items-center gap-2 border border-[#D1D5DB]"
+                    title="Ekspor seluruh data ke Excel"
+                  >
+                    <Download className="w-4 h-4" /> <span className="hidden sm:inline">Ekspor Excel</span>
                   </button>
                 </>
               )}
