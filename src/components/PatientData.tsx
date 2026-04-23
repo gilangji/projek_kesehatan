@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Patient, KibSettings } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard, Search } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, Printer, Plus, FileText, CreditCard, Search, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import * as xlsx from 'xlsx';
 
 interface PatientDataProps {
   mode: 'input' | 'list' | 'printMenu';
@@ -82,6 +83,8 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
   const [viewMode, setViewMode] = useState(mode);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Allow internal switching (e.g. from list to edit)
   useEffect(() => {
     setViewMode(mode);
@@ -107,6 +110,81 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
     };
     fetchPatients();
   }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = xlsx.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = xlsx.utils.sheet_to_json(ws);
+        
+        if (data.length === 0) {
+          alert('File kosong atau format salah.');
+          return;
+        }
+
+        let importedCount = 0;
+        const newPatients: Patient[] = [...patients];
+
+        for (const row of data as any[]) {
+          // Mapping standard excel column names (can adjust based on expected format)
+          const noRm = row['No RM'] || row['no_rm'] || row['noRm']?.toString();
+          const nama = row['Nama'] || row['nama'] || row['Nama Pasien'];
+          
+          if (!noRm || !nama) continue; // Skip invalid rows
+          
+          // Check for duplicate in current state
+          if (newPatients.some(p => p.noRm === noRm.toString())) continue;
+
+          const importedPatient: Patient = {
+            noRm: noRm.toString(),
+            nama: nama.toString(),
+            jenisKelamin: row['Jenis Kelamin'] || row['jenis_kelamin'] || 'Laki-laki',
+            tanggalLahir: row['Tanggal Lahir'] || row['tanggal_lahir'] || '',
+            umur: row['Umur']?.toString() || row['umur']?.toString() || '',
+            agama: row['Agama'] || row['agama'] || '',
+            alamat: row['Alamat'] || row['alamat'] || '',
+            pendidikan: row['Pendidikan'] || row['pendidikan'] || '',
+            pekerjaan: row['Pekerjaan'] || row['pekerjaan'] || '',
+            status: row['Status'] || row['status'] || '',
+            noTelepon: row['No Telepon'] || row['no_telepon']?.toString() || '',
+            laporanDokter: row['Laporan Dokter'] || row['Keluhan'] || '',
+            ruangan: row['Ruangan'] || row['ruangan'] || '',
+            penanggungJawab: {
+              nama: row['PJ Nama'] || row['Nama PJ'] || '',
+              hubungan: row['PJ Hubungan'] || row['Hubungan PJ'] || '',
+              alamat: row['PJ Alamat'] || row['Alamat PJ'] || '',
+              noTelepon: row['PJ No Telepon'] || row['No Telepon PJ']?.toString() || ''
+            }
+          };
+
+          const { error } = await supabase.from('patients').upsert(mapToRow(importedPatient));
+          if (!error) {
+            newPatients.unshift(importedPatient);
+            importedCount++;
+          }
+        }
+
+        setPatients(newPatients);
+        alert(`Berhasil mengimpor ${importedCount} data pasien.`);
+      } catch (error) {
+        console.error('Error importing file:', error);
+        alert('Terjadi kesalahan saat memproses file. Pastikan format CSV/Excel benar.');
+      }
+      
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -447,22 +525,45 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
             </div>
           )}
 
-          <div className="px-10 py-6 border-t border-[#E5E7EB] flex justify-end gap-3 bg-white">
-            {viewMode === 'input' && (
-              <>
-                <button onClick={handleNew} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-gray-50 transition">
-                  Kosongkan Form
+          <div className="px-10 py-6 border-t border-[#E5E7EB] flex justify-between items-center gap-3 bg-white">
+            <div className="flex items-center gap-3">
+              {viewMode === 'list' && (
+                <>
+                  <input 
+                    type="file" 
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
+                    className="hidden" 
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                  />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()} 
+                    className="px-4 py-2.5 rounded-md text-[14px] font-medium bg-[#F3F4F6] text-[#4B5563] hover:bg-[#E5E7EB] transition flex items-center gap-2 border border-[#D1D5DB]"
+                    title="Impor data dari CSV atau Excel"
+                  >
+                    <Upload className="w-4 h-4" /> Impor Data (CSV/Excel)
+                  </button>
+                </>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {viewMode === 'input' && (
+                <>
+                  <button onClick={handleNew} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-white border border-[#E5E7EB] text-[#1F2937] hover:bg-gray-50 transition">
+                    Kosongkan Form
+                  </button>
+                  <button onClick={handleSave} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
+                    <Save className="w-4 h-4" /> Simpan Data
+                  </button>
+                </>
+              )}
+              {viewMode === 'list' && (
+                <button onClick={() => { handleNew(); setViewMode('input'); }} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Tambah Pasien Baru
                 </button>
-                <button onClick={handleSave} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
-                  <Save className="w-4 h-4" /> Simpan Data
-                </button>
-              </>
-            )}
-            {viewMode === 'list' && (
-              <button onClick={() => { handleNew(); setViewMode('input'); }} className="px-6 py-2.5 rounded-md text-[14px] font-semibold bg-[#2563EB] text-white hover:bg-blue-700 transition flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Tambah Pasien Baru
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>
