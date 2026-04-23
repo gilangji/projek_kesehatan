@@ -10,21 +10,8 @@ interface MainMenuProps {
 
 export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenuProps) {
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Background Image */}
-      {kibSettings.backgroundUrl ? (
-        <div 
-          className="absolute inset-0 bg-cover bg-center z-0" 
-          style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
-        >
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
-        </div>
-      ) : (
-        <div className="absolute inset-0 bg-[#F8F9FA] z-0"></div>
-      )}
-
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
+    <div className="flex-1 flex flex-col">
+      <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] px-8 py-5 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img 
               src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
@@ -99,7 +86,6 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
             </button>
           </div>
         </main>
-      </div>
     </div>
   );
 }

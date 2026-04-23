@@ -73,8 +73,8 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
   const isBgLocked = !!localSettings.backgroundUrl;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col">
-      <nav className="bg-white border-b border-[#E5E7EB] px-8 py-5 flex items-center space-x-4">
+    <div className="flex-1 flex flex-col">
+      <nav className="bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] px-8 py-5 flex items-center space-x-4 sticky top-0 z-10">
         <button onClick={onBack} className="text-[#6B7280] hover:text-[#1F2937] transition">
           <ArrowLeft className="w-5 h-5" />
         </button>

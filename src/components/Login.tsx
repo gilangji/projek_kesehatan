@@ -22,20 +22,8 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative">
-      {/* Background Image */}
-      {kibSettings.backgroundUrl ? (
-        <div 
-          className="absolute inset-0 bg-cover bg-center z-0" 
-          style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
-        >
-          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm"></div>
-        </div>
-      ) : (
-        <div className="absolute inset-0 bg-[#F8F9FA] z-0"></div>
-      )}
-
-      <div className="bg-white p-10 rounded-xl border border-[#E5E7EB] shadow-sm w-[400px] relative z-10">
+    <div className="flex-1 flex items-center justify-center p-8">
+      <div className="bg-white p-10 rounded-xl border border-[#E5E7EB] shadow-sm w-full max-w-[400px]">
         <div className="flex justify-center mb-8">
           <div className="w-24 h-24">
             <img 

@@ -78,48 +78,62 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {currentView === 'login' && <Login onLogin={handleLogin} kibSettings={kibSettings} />}
-      {currentView === 'main' && <MainMenu onNavigate={handleNavigate} onLogout={handleLogout} kibSettings={kibSettings} />}
-      {currentView === 'settings' && (
-        <Settings 
-          onBack={() => setCurrentView('main')} 
-          kibSettings={kibSettings}
-          onUpdateKibSettings={setKibSettings}
-        />
+    <div className="min-h-screen relative flex flex-col bg-[#F8F9FA]">
+      {/* Global Unified Background */}
+      {kibSettings.backgroundUrl ? (
+        <div 
+          className="fixed inset-0 bg-cover bg-center z-0" 
+          style={{ backgroundImage: `url(${kibSettings.backgroundUrl})` }}
+        >
+          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm"></div>
+        </div>
+      ) : (
+        <div className="fixed inset-0 bg-[#F8F9FA] z-0"></div>
       )}
-      {currentView === 'patientInput' && (
-        <PatientData 
-          mode="input"
-          onBack={() => setCurrentView('main')} 
-          onPrint={handlePrint} 
-          kibSettings={kibSettings}
-        />
-      )}
-      {currentView === 'patientList' && (
-        <PatientData 
-          mode="list"
-          onBack={() => setCurrentView('main')} 
-          onPrint={handlePrint} 
-          kibSettings={kibSettings}
-        />
-      )}
-      {currentView === 'printMenu' && (
-        <PatientData 
-          mode="printMenu"
-          onBack={() => setCurrentView('main')} 
-          onPrint={handlePrint} 
-          kibSettings={kibSettings}
-        />
-      )}
-      {currentView === 'printPreview' && selectedPatient && (
-        <KIBPrint 
-          patient={selectedPatient} 
-          onBack={() => setCurrentView('printMenu')} 
-          kibSettings={kibSettings}
-          initialFormat={printFormat}
-        />
-      )}
+
+      <div className="relative z-10 flex-1 flex flex-col">
+        {currentView === 'login' && <Login onLogin={handleLogin} kibSettings={kibSettings} />}
+        {currentView === 'main' && <MainMenu onNavigate={handleNavigate} onLogout={handleLogout} kibSettings={kibSettings} />}
+        {currentView === 'settings' && (
+          <Settings 
+            onBack={() => setCurrentView('main')} 
+            kibSettings={kibSettings}
+            onUpdateKibSettings={setKibSettings}
+          />
+        )}
+        {currentView === 'patientInput' && (
+          <PatientData 
+            mode="input"
+            onBack={() => setCurrentView('main')} 
+            onPrint={handlePrint} 
+            kibSettings={kibSettings}
+          />
+        )}
+        {currentView === 'patientList' && (
+          <PatientData 
+            mode="list"
+            onBack={() => setCurrentView('main')} 
+            onPrint={handlePrint} 
+            kibSettings={kibSettings}
+          />
+        )}
+        {currentView === 'printMenu' && (
+          <PatientData 
+            mode="printMenu"
+            onBack={() => setCurrentView('main')} 
+            onPrint={handlePrint} 
+            kibSettings={kibSettings}
+          />
+        )}
+        {currentView === 'printPreview' && selectedPatient && (
+          <KIBPrint 
+            patient={selectedPatient} 
+            onBack={() => setCurrentView('printMenu')} 
+            kibSettings={kibSettings}
+            initialFormat={printFormat}
+          />
+        )}
+      </div>
     </div>
   );
 }
