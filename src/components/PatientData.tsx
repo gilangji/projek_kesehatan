@@ -226,9 +226,13 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
 
       <main className="flex-1 p-8 lg:p-12 flex flex-col max-w-7xl mx-auto w-full">
         <header className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className={`text-[28px] font-semibold mb-2 ${kibSettings.backgroundUrl ? 'text-white drop-shadow-md' : 'text-[#1F2937]'}`}>{getTitle()}</h1>
-            <p className={`text-[15px] ${kibSettings.backgroundUrl ? 'text-white/90 drop-shadow' : 'text-[#6B7280]'}`}>{getSubtitle()}</p>
+          <div className={`flex flex-col items-start ${kibSettings.backgroundUrl ? 'space-y-3' : ''}`}>
+            <h1 className={kibSettings.backgroundUrl ? "text-[26px] font-bold text-[#2563EB] bg-[#E0E7FF]/95 backdrop-blur-sm px-6 py-2 rounded-full shadow-sm border border-blue-100" : "text-[28px] font-semibold text-[#1F2937] mb-2"}>
+              {getTitle()}
+            </h1>
+            <p className={kibSettings.backgroundUrl ? "text-[14px] font-medium text-[#4B5563] bg-white/95 px-5 py-2 rounded-full shadow-sm backdrop-blur-sm" : "text-[15px] text-[#6B7280]"}>
+              {getSubtitle()}
+            </p>
           </div>
           <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-[#E0E7FF] text-[#2563EB] shadow-sm">MODUL AKTIF</span>
         </header>
