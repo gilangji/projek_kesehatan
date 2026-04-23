@@ -12,16 +12,17 @@ import Settings from './components/Settings';
 import { Patient, KibSettings } from './types';
 import { supabase } from './lib/supabase';
 
-type ViewState = 'login' | 'main' | 'patientData' | 'printKIB' | 'settings';
+type ViewState = 'login' | 'main' | 'patientInput' | 'patientList' | 'printMenu' | 'settings' | 'printPreview';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>(() => {
     const savedView = localStorage.getItem('currentView');
-    // Jika di-refresh saat di halaman cetak, kembalikan ke data pasien agar tidak error karena data pasien kosong
-    if (savedView === 'printKIB') return 'patientData';
+    // Save safety check: if refreshed on print preview, return to main menu or list
+    if (savedView === 'printPreview') return 'patientList';
     return (savedView as ViewState) || 'login';
   });
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [printFormat, setPrintFormat] = useState<'card' | 'document'>('card');
   const [kibSettings, setKibSettings] = useState<KibSettings>({ logoUrl: '', backgroundUrl: '' });
 
   // Simpan state halaman saat ini ke localStorage setiap kali berubah
@@ -70,9 +71,10 @@ export default function App() {
     setCurrentView(view as ViewState);
   };
 
-  const handlePrint = (patient: Patient) => {
+  const handlePrint = (patient: Patient, format: 'card' | 'document') => {
     setSelectedPatient(patient);
-    setCurrentView('printKIB');
+    setPrintFormat(format);
+    setCurrentView('printPreview');
   };
 
   return (
@@ -86,18 +88,36 @@ export default function App() {
           onUpdateKibSettings={setKibSettings}
         />
       )}
-      {currentView === 'patientData' && (
+      {currentView === 'patientInput' && (
         <PatientData 
+          mode="input"
           onBack={() => setCurrentView('main')} 
           onPrint={handlePrint} 
           kibSettings={kibSettings}
         />
       )}
-      {currentView === 'printKIB' && selectedPatient && (
+      {currentView === 'patientList' && (
+        <PatientData 
+          mode="list"
+          onBack={() => setCurrentView('main')} 
+          onPrint={handlePrint} 
+          kibSettings={kibSettings}
+        />
+      )}
+      {currentView === 'printMenu' && (
+        <PatientData 
+          mode="printMenu"
+          onBack={() => setCurrentView('main')} 
+          onPrint={handlePrint} 
+          kibSettings={kibSettings}
+        />
+      )}
+      {currentView === 'printPreview' && selectedPatient && (
         <KIBPrint 
           patient={selectedPatient} 
-          onBack={() => setCurrentView('patientData')} 
+          onBack={() => setCurrentView('printMenu')} 
           kibSettings={kibSettings}
+          initialFormat={printFormat}
         />
       )}
     </div>
