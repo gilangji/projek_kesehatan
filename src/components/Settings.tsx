@@ -163,7 +163,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
             <div className="border border-[#E5E7EB] rounded-lg p-6 bg-[#F9FAFB]">
               <h3 className="font-semibold text-[#1F2937] mb-4 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-[#2563EB]" />
-                Latar Belakang Depan KIB
+                Latar Belakang Kartu KIB (Depan & Belakang)
               </h3>
               
               {localSettings.frontBackgroundUrl ? (
@@ -194,7 +194,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
             <div className="border border-[#E5E7EB] rounded-lg p-6 bg-[#F9FAFB]">
               <h3 className="font-semibold text-[#1F2937] mb-4 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-[#2563EB]" />
-                Latar Belakang Menu & Belakang KIB
+                Latar Belakang Aplikasi (Login & Menu)
               </h3>
               
               {localSettings.backgroundUrl ? (

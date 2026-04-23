@@ -135,9 +135,9 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
           {/* Instructions Card (Back of card or separate info) */}
           <div className="mt-8 border border-[#E5E7EB] rounded-xl overflow-hidden relative bg-white shadow-sm" style={{ width: '85.6mm', height: '53.98mm', margin: '20px auto 0' }}>
              {/* Background Gradient or Custom Image */}
-             {kibSettings.backgroundUrl ? (
+             {kibSettings.frontBackgroundUrl ? (
                <img 
-                 src={kibSettings.backgroundUrl}
+                 src={kibSettings.frontBackgroundUrl}
                  alt="Background Belakang"
                  className="absolute inset-0 w-full h-full object-cover opacity-90 z-0" 
                />
