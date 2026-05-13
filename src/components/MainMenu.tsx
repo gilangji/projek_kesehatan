@@ -36,20 +36,7 @@ export default function MainMenu({ onNavigate, onLogout, kibSettings }: MainMenu
             </p>
           </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <button
-              onClick={() => onNavigate('patientInput')}
-              className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
-            >
-              <div className="bg-[#E0E7FF] group-hover:bg-[#DBEAFE] p-3 rounded-full transition">
-                <UserPlus className="w-6 h-6 text-[#2563EB]" />
-              </div>
-              <div>
-                <span className="block text-[16px] font-semibold text-[#1F2937] mb-1">Input Data Pasien</span>
-                <span className="text-[13px] text-[#6B7280]">Registrasi form pasien baru</span>
-              </div>
-            </button>
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             <button
               onClick={() => onNavigate('patientList')}
               className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition flex flex-col items-start justify-center space-y-4 text-left group"
