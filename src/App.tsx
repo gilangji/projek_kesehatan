@@ -88,7 +88,8 @@ export default function App() {
       setCurrentView('main');
     } else if (role === 'patient' && patientData) {
       setSelectedPatient(patientData);
-      setCurrentView('patientSelfPortal');
+      setPrintFormat('card'); // Automatically assume they want card, not document
+      setCurrentView('patientSelfPrintPreview');
     }
   };
 
@@ -204,7 +205,7 @@ export default function App() {
         {currentView === 'patientSelfPrintPreview' && selectedPatient && userRole === 'patient' && (
           <KIBPrint 
             patient={selectedPatient} 
-            onBack={() => setCurrentView('patientSelfPortal')} 
+            onBack={handleLogout} 
             kibSettings={kibSettings}
             initialFormat={printFormat}
           />

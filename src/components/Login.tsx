@@ -60,10 +60,12 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
     setLoading(true);
     setError('');
     try {
+      // Tolerate case insensitive RM
+      const formattedRm = barcodeData.trim().toUpperCase();
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .eq('no_rm', barcodeData)
+        .ilike('no_rm', formattedRm)
         .single();
         
       if (error || !data) {
@@ -116,10 +118,12 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
     setLoading(true);
 
     try {
+      // Tolerate simple differences like 'rm-001' to 'RM-001' by using ilike
+      const formattedRm = loginRm.trim().toUpperCase();
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .eq('no_rm', loginRm)
+        .ilike('no_rm', formattedRm)
         .eq('tanggal_lahir', loginTglLahir)
         .single();
         
