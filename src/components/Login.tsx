@@ -134,21 +134,21 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
     setLoading(true);
 
     try {
-      const formattedRm = loginRm.trim().toUpperCase();
+      const formattedInput = loginRm.trim();
       const formattedTgl = parseTglLahir(loginTglLahir);
       
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .ilike('no_rm', formattedRm)
+        .or(`no_rm.ilike.%${formattedInput}%,nama.ilike.%${formattedInput}%`)
         .eq('tanggal_lahir', formattedTgl)
-        .single();
+        .limit(1);
         
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         throw new Error('Data pasien tidak ditemukan atau format tanggal lahir salah (Gunakan YYYY-MM-DD atau DD-MM-YYYY).');
       }
       
-      onLogin('patient', mapToPatient(data));
+      onLogin('patient', mapToPatient(data[0]));
     } catch (err: any) {
       console.error(err);
       setError('Gagal masuk: ' + err.message);
@@ -301,7 +301,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
                       <Fingerprint className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
                       <input
                         type="text"
-                        placeholder="Masukkan No Rekam Medis (RM)"
+                        placeholder="No Rekam Medis (RM) / Nama"
                         className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                         value={loginRm}
                         required
