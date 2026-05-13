@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Lock, User, UserPlus, Fingerprint, Calendar, ScanLine, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Lock, User, UserPlus, Fingerprint, Calendar, ScanLine, X, ImagePlus } from 'lucide-react';
 import { KibSettings, Patient } from '../types';
 import { supabase } from '../lib/supabase';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 
 interface LoginProps {
   onLogin: (role: 'admin' | 'patient', patientData?: Patient) => void;
@@ -32,6 +32,27 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        setLoading(true);
+        setError('');
+        const html5QrCode = new Html5Qrcode("reader-hidden");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        await loginWithBarcode(decodedText);
+      } catch (err) {
+        console.error(err);
+        setError('Gagal membaca gambar. Pastikan gambar mengandung kode batang atau QR Code yang jelas.');
+      } finally {
+        setLoading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    }
+  };
 
   useEffect(() => {
     if (isScanning) {
@@ -329,15 +350,35 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
                       <div className="flex-grow border-t border-gray-200"></div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setIsScanning(true)}
-                      className="w-full bg-[#F3F4F6] text-[#1F2937] py-3 rounded-md text-[14px] font-semibold hover:bg-[#E5E7EB] transition flex items-center justify-center gap-2 border border-[#D1D5DB]"
-                    >
-                      <ScanLine className="w-5 h-5" /> Scan Kode Batang
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsScanning(true)}
+                        className="w-full bg-[#F3F4F6] text-[#1F2937] py-3 rounded-md text-[13px] font-semibold hover:bg-[#E5E7EB] transition flex items-center justify-center gap-2 border border-[#D1D5DB]"
+                      >
+                        <ScanLine className="w-4 h-4" /> Buka Kamera
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full bg-white text-[#1F2937] py-3 rounded-md text-[13px] font-semibold hover:bg-[#F3F4F6] transition flex items-center justify-center gap-2 border border-[#D1D5DB]"
+                      >
+                        <ImagePlus className="w-4 h-4" /> Upload Foto
+                      </button>
+                    </div>
+
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
                   </>
                 )}
+
+                <div id="reader-hidden" style={{ display: 'none' }}></div>
 
                 <div className="mt-6 text-center border-t border-[#E5E7EB] pt-6">
                   <p className="text-[#6B7280] text-[13px] mb-3">Belum pernah berobat / belum punya No RM?</p>
