@@ -309,6 +309,11 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
                     <p className="text-center text-[12px] text-gray-500 mt-2">
                       Arahkan kode batang atau QR code kartu KIB Anda ke kamera.
                     </p>
+                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-[12px] text-amber-700 text-center">
+                        <strong>Kamera lambat/tidak muncul?</strong><br/>Karena alasan keamanan *browser* saat di dalam mode *preview* (layar kecil), izin kamera bisa tertunda. Silakan buka aplikasi ini di <strong>Tab Baru</strong> (ikon kotak tanda panah di pojok kanan atas) agar lebih lancar.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <>
