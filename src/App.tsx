@@ -207,7 +207,8 @@ export default function App() {
             patient={selectedPatient} 
             onBack={handleLogout} 
             kibSettings={kibSettings}
-            initialFormat={printFormat}
+            initialFormat="card"
+            hideFormatToggle={true}
           />
         )}
       </div>

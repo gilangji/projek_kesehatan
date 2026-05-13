@@ -8,9 +8,10 @@ interface KIBPrintProps {
   onBack: () => void;
   kibSettings: KibSettings;
   initialFormat?: 'card' | 'document';
+  hideFormatToggle?: boolean;
 }
 
-export default function KIBPrint({ patient, onBack, kibSettings, initialFormat = 'card' }: KIBPrintProps) {
+export default function KIBPrint({ patient, onBack, kibSettings, initialFormat = 'card', hideFormatToggle = false }: KIBPrintProps) {
   const [printFormat, setPrintFormat] = useState<'card' | 'document'>(initialFormat);
 
   const handlePrint = () => {
@@ -27,22 +28,24 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
           <span>Kembali</span>
         </button>
         
-        <div className="flex bg-white rounded-md border border-[#E5E7EB] shadow-sm p-1">
-          <button 
-            onClick={() => setPrintFormat('card')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-[13px] font-semibold transition ${printFormat === 'card' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span>Format Kartu</span>
-          </button>
-          <button 
-            onClick={() => setPrintFormat('document')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-[13px] font-semibold transition ${printFormat === 'document' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Format Dokumen</span>
-          </button>
-        </div>
+        {!hideFormatToggle && (
+          <div className="flex bg-white rounded-md border border-[#E5E7EB] shadow-sm p-1">
+            <button 
+              onClick={() => setPrintFormat('card')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-[13px] font-semibold transition ${printFormat === 'card' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Format Kartu</span>
+            </button>
+            <button 
+              onClick={() => setPrintFormat('document')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-[13px] font-semibold transition ${printFormat === 'document' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Format Dokumen</span>
+            </button>
+          </div>
+        )}
 
         <button onClick={handlePrint} className="flex items-center space-x-2 bg-[#2563EB] text-white px-6 py-2.5 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition shadow-sm">
           <Printer className="w-4 h-4" />

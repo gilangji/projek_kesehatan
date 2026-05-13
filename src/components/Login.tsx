@@ -112,23 +112,40 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
     }
   });
 
+  const parseTglLahir = (input: string) => {
+    // Toleransi berbagai format: DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD, YYYY/MM/DD
+    const cleaned = input.replace(/\//g, '-').trim();
+    const parts = cleaned.split('-');
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        // YYYY-MM-DD
+        return cleaned;
+      } else if (parts[2].length === 4) {
+        // DD-MM-YYYY -> YYYY-MM-DD
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    return input; // return as is if can't infer
+  };
+
   const handlePatientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // Tolerate simple differences like 'rm-001' to 'RM-001' by using ilike
       const formattedRm = loginRm.trim().toUpperCase();
+      const formattedTgl = parseTglLahir(loginTglLahir);
+      
       const { data, error } = await supabase
         .from('patients')
         .select('*')
         .ilike('no_rm', formattedRm)
-        .eq('tanggal_lahir', loginTglLahir)
+        .eq('tanggal_lahir', formattedTgl)
         .single();
         
       if (error || !data) {
-        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
+        throw new Error('Data pasien tidak ditemukan atau format tanggal lahir salah (Gunakan YYYY-MM-DD atau DD-MM-YYYY).');
       }
       
       onLogin('patient', mapToPatient(data));
@@ -154,12 +171,13 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
     try {
       // Generate Auto RM (simple approach using timestamp)
       const autoRm = `RM-${Math.floor(Date.now() / 1000).toString().slice(-6)}`;
+      const formattedTgl = parseTglLahir(regData.tanggalLahir);
       
       const newRow = {
         no_rm: autoRm,
         nama: regData.nama,
         jenis_kelamin: regData.jenisKelamin,
-        tanggal_lahir: regData.tanggalLahir,
+        tanggal_lahir: formattedTgl,
         alamat: regData.alamat,
         umur: '',
         agama: '',
@@ -288,8 +306,8 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
                     <div className="mb-6 relative">
                       <Calendar className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
                       <input
-                        type="date"
-                        placeholder="Tanggal Lahir"
+                        type="text"
+                        placeholder="Tgl Lahir (DD-MM-YYYY / YYYY-MM-DD)"
                         className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                         value={loginTglLahir}
                         required
@@ -371,8 +389,9 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
               <div className="mb-4">
                 <label className="block text-[12px] text-[#4B5563] mb-1.5 font-medium">Tanggal Lahir</label>
                 <input
-                  type="date"
+                  type="text"
                   required
+                  placeholder="DD-MM-YYYY atau YYYY-MM-DD"
                   className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                   value={regData.tanggalLahir}
                   onChange={(e) => setRegData({...regData, tanggalLahir: e.target.value})}
