@@ -320,7 +320,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
                       disabled={loading}
                       className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-70 mb-3"
                     >
-                      {loading ? 'Memeriksa...' : 'Cek Riwayat KIB & Laporan'}
+                      {loading ? 'Memeriksa...' : 'E-KIB'}
                     </button>
 
                     <div className="relative flex items-center py-2">
