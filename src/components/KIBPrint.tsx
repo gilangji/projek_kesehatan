@@ -23,7 +23,12 @@ export default function KIBPrint({ patient, onBack, kibSettings, initialFormat =
   const handleDownloadImage = async () => {
     if (!cardRef.current) return;
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
+      const canvas = await html2canvas(cardRef.current, { 
+        backgroundColor: null, 
+        scale: 2,
+        useCORS: true,
+        allowTaint: false // to avoid tainting canvas, since we use useCORS
+      });
       const image = canvas.toDataURL("image/png");
       const link = document.createElement('a');
       link.href = image;
