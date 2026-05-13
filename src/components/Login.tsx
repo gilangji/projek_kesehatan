@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Lock, User, UserPlus, Fingerprint, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lock, User, UserPlus, Fingerprint, Calendar, ScanLine, X } from 'lucide-react';
 import { KibSettings, Patient } from '../types';
 import { supabase } from '../lib/supabase';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface LoginProps {
   onLogin: (role: 'admin' | 'patient', patientData?: Patient) => void;
@@ -10,6 +11,7 @@ interface LoginProps {
 
 export default function Login({ onLogin, kibSettings }: LoginProps) {
   const [activeTab, setActiveTab] = useState<'admin' | 'pasien'>('pasien');
+  const [isScanning, setIsScanning] = useState(false);
   
   // Admin state
   const [username, setUsername] = useState('');
@@ -30,6 +32,52 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isScanning) {
+      const scanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
+
+      scanner.render(async (decodedText) => {
+        // Stop scanner on success
+        scanner.clear();
+        setIsScanning(false);
+        await loginWithBarcode(decodedText);
+      }, () => {
+        // handle scan failure (ignore)
+      });
+
+      return () => {
+        scanner.clear().catch(console.error);
+      };
+    }
+  }, [isScanning]);
+
+  const loginWithBarcode = async (barcodeData: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('no_rm', barcodeData)
+        .single();
+        
+      if (error || !data) {
+        throw new Error(`Data pasien dengan No RM ${barcodeData} tidak ditemukan.`);
+      }
+      
+      onLogin('patient', mapToPatient(data));
+    } catch (err: any) {
+      console.error(err);
+      setError('Gagal masuk via scan: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAdminSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,35 +253,69 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
 
             {activeTab === 'pasien' && (
               <form onSubmit={handlePatientSubmit}>
-                <div className="mb-4 relative">
-                  <Fingerprint className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Masukkan No Rekam Medis (RM)"
-                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    value={loginRm}
-                    required
-                    onChange={(e) => setLoginRm(e.target.value)}
-                  />
-                </div>
-                <div className="mb-6 relative">
-                  <Calendar className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
-                  <input
-                    type="date"
-                    placeholder="Tanggal Lahir"
-                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    value={loginTglLahir}
-                    required
-                    onChange={(e) => setLoginTglLahir(e.target.value)}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-70"
-                >
-                  {loading ? 'Memeriksa...' : 'Cek Riwayat KIB & Laporan'}
-                </button>
+                {isScanning ? (
+                  <div className="mb-6 relative">
+                    <div id="reader" className="w-full bg-[#f8f9fa] border border-[#e5e7eb] rounded-xl overflow-hidden"></div>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsScanning(false)}
+                      className="w-full mt-3 bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-md text-[13px] font-semibold hover:bg-red-100 transition flex items-center justify-center gap-2"
+                    >
+                      <X className="w-4 h-4" /> Batal Scan
+                    </button>
+                    <p className="text-center text-[12px] text-gray-500 mt-2">
+                      Arahkan kode batang atau QR code kartu KIB Anda ke kamera.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="text-center text-[13px] text-[#4B5563] mb-4 font-medium">Buka Kartu Elektronik</h3>
+                    <div className="mb-4 relative">
+                      <Fingerprint className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                      <input
+                        type="text"
+                        placeholder="Masukkan No Rekam Medis (RM)"
+                        className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={loginRm}
+                        required
+                        onChange={(e) => setLoginRm(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-6 relative">
+                      <Calendar className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                      <input
+                        type="date"
+                        placeholder="Tanggal Lahir"
+                        className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={loginTglLahir}
+                        required
+                        onChange={(e) => setLoginTglLahir(e.target.value)}
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-70 mb-3"
+                    >
+                      {loading ? 'Memeriksa...' : 'Cek Riwayat KIB & Laporan'}
+                    </button>
+
+                    <div className="relative flex items-center py-2">
+                      <div className="flex-grow border-t border-gray-200"></div>
+                      <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">ATAU</span>
+                      <div className="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsScanning(true)}
+                      className="w-full bg-[#F3F4F6] text-[#1F2937] py-3 rounded-md text-[14px] font-semibold hover:bg-[#E5E7EB] transition flex items-center justify-center gap-2 border border-[#D1D5DB]"
+                    >
+                      <ScanLine className="w-5 h-5" /> Scan Kode Batang
+                    </button>
+                  </>
+                )}
 
                 <div className="mt-6 text-center border-t border-[#E5E7EB] pt-6">
                   <p className="text-[#6B7280] text-[13px] mb-3">Belum pernah berobat / belum punya No RM?</p>
