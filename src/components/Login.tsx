@@ -1,31 +1,148 @@
 import React, { useState } from 'react';
-import { Lock, User } from 'lucide-react';
-import { KibSettings } from '../types';
+import { Lock, User, UserPlus, Fingerprint, Calendar } from 'lucide-react';
+import { KibSettings, Patient } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (role: 'admin' | 'patient', patientData?: Patient) => void;
   kibSettings: KibSettings;
 }
 
 export default function Login({ onLogin, kibSettings }: LoginProps) {
+  const [activeTab, setActiveTab] = useState<'admin' | 'pasien'>('pasien');
+  
+  // Admin state
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  
+  // Patient login state
+  const [loginRm, setLoginRm] = useState('');
+  const [loginTglLahir, setLoginTglLahir] = useState('');
+  
+  // Patient registration state
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [regData, setRegData] = useState({
+    nama: '',
+    jenisKelamin: 'Laki-laki',
+    tanggalLahir: '',
+    alamat: ''
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleAdminSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === 'admin' && password === 'admin') {
-      onLogin();
+      onLogin('admin');
     } else {
-      setError('Username atau password salah!');
+      setError('Username atau password admin salah!');
+    }
+  };
+
+  const mapToPatient = (row: any): Patient => ({
+    noRm: row.no_rm,
+    nama: row.nama,
+    jenisKelamin: row.jenis_kelamin,
+    tanggalLahir: row.tanggal_lahir,
+    umur: row.umur,
+    agama: row.agama,
+    alamat: row.alamat,
+    pendidikan: row.pendidikan,
+    pekerjaan: row.pekerjaan,
+    status: row.status,
+    noTelepon: row.no_telepon,
+    laporanDokter: row.laporan_dokter || '',
+    ruangan: row.ruangan || '',
+    penanggungJawab: {
+      nama: row.pj_nama || '',
+      hubungan: row.pj_hubungan || '',
+      alamat: row.pj_alamat || '',
+      noTelepon: row.pj_no_telepon || ''
+    }
+  });
+
+  const handlePatientSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('no_rm', loginRm)
+        .eq('tanggal_lahir', loginTglLahir)
+        .single();
+        
+      if (error || !data) {
+        throw new Error('Data pasien tidak ditemukan atau tanggal lahir salah.');
+      }
+      
+      onLogin('patient', mapToPatient(data));
+    } catch (err: any) {
+      console.error(err);
+      setError('Gagal masuk: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!regData.nama || !regData.tanggalLahir) {
+      setError('Nama dan Tanggal Lahir wajib diisi.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Generate Auto RM (simple approach using timestamp)
+      const autoRm = `RM-${Math.floor(Date.now() / 1000).toString().slice(-6)}`;
+      
+      const newRow = {
+        no_rm: autoRm,
+        nama: regData.nama,
+        jenis_kelamin: regData.jenisKelamin,
+        tanggal_lahir: regData.tanggalLahir,
+        alamat: regData.alamat,
+        umur: '',
+        agama: '',
+        pendidikan: '',
+        pekerjaan: '',
+        status: '',
+        no_telepon: '',
+        laporan_dokter: '',
+        ruangan: '',
+        pj_nama: '',
+        pj_hubungan: '',
+        pj_alamat: '',
+        pj_no_telepon: ''
+      };
+
+      const { error } = await supabase.from('patients').insert([newRow]);
+
+      if (error) throw error;
+
+      alert(`Pendaftaran Berhasil!\n\nNo Rekam Medis (RM) Anda: ${autoRm}\nHarap catat No RM ini untuk login selanjutnya.`);
+      
+      onLogin('patient', mapToPatient(newRow));
+    } catch (err: any) {
+      console.error(err);
+      setError('Gagal mendaftar: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
-      <div className="bg-white p-10 rounded-xl border border-[#E5E7EB] shadow-sm w-full max-w-[400px]">
-        <div className="flex justify-center mb-8">
-          <div className="w-24 h-24">
+    <div className="flex-1 flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-xl border border-[#E5E7EB] shadow-sm w-full max-w-[450px]">
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20">
             <img 
               src={kibSettings.logoUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Lambang_Kabupaten_Buton_Selatan.png/600px-Lambang_Kabupaten_Buton_Selatan.png"} 
               alt="Logo" 
@@ -33,36 +150,176 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
             />
           </div>
         </div>
-        <h2 className="text-[24px] font-semibold text-center text-[#1F2937] mb-8">Login UPTD Puskesmas Sampolawa</h2>
-        {error && <p className="text-red-500 text-[13px] text-center mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-5 relative">
-            <User className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Username"
-              className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+        
+        <h2 className="text-[20px] font-bold text-center text-[#1F2937] mb-6">UPTD Puskesmas Sampolawa</h2>
+
+        {!isRegistering ? (
+          <>
+            <div className="flex border-b border-[#E5E7EB] mb-6">
+              <button 
+                className={`flex-1 pb-3 text-[14px] font-semibold transition ${activeTab === 'pasien' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                onClick={() => { setActiveTab('pasien'); setError(''); }}
+              >
+                Pasien
+              </button>
+              <button 
+                className={`flex-1 pb-3 text-[14px] font-semibold transition ${activeTab === 'admin' ? 'text-[#2563EB] border-b-2 border-[#2563EB]' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                onClick={() => { setActiveTab('admin'); setError(''); }}
+              >
+                Petugas
+              </button>
+            </div>
+
+            {error && <p className="text-red-500 text-[13px] text-center mb-4">{error}</p>}
+
+            {activeTab === 'admin' && (
+              <form onSubmit={handleAdminSubmit}>
+                <div className="mb-4 relative">
+                  <User className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Username Admin"
+                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                <div className="mb-6 relative">
+                  <Lock className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                  <input
+                    type="password"
+                    placeholder="Password Admin"
+                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-[#1F2937] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-gray-800 transition duration-200"
+                >
+                  Masuk sebagai Petugas
+                </button>
+              </form>
+            )}
+
+            {activeTab === 'pasien' && (
+              <form onSubmit={handlePatientSubmit}>
+                <div className="mb-4 relative">
+                  <Fingerprint className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Masukkan No Rekam Medis (RM)"
+                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    value={loginRm}
+                    required
+                    onChange={(e) => setLoginRm(e.target.value)}
+                  />
+                </div>
+                <div className="mb-6 relative">
+                  <Calendar className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
+                  <input
+                    type="date"
+                    placeholder="Tanggal Lahir"
+                    className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                    value={loginTglLahir}
+                    required
+                    onChange={(e) => setLoginTglLahir(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-70"
+                >
+                  {loading ? 'Memeriksa...' : 'Cek Riwayat KIB & Laporan'}
+                </button>
+
+                <div className="mt-6 text-center border-t border-[#E5E7EB] pt-6">
+                  <p className="text-[#6B7280] text-[13px] mb-3">Belum pernah berobat / belum punya No RM?</p>
+                  <button
+                    type="button"
+                    onClick={() => { setIsRegistering(true); setError(''); }}
+                    className="w-full flex items-center justify-center space-x-2 border border-[#2563EB] text-[#2563EB] bg-blue-50 py-2.5 rounded-md text-[13px] font-semibold hover:bg-blue-100 transition duration-200"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>Daftar / Isi Form Mandiri</span>
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        ) : (
+          <div>
+            <div className="mb-5 border-b border-[#E5E7EB] pb-3">
+              <h3 className="text-[16px] font-bold text-[#1F2937]">Registrasi Pasien Baru</h3>
+              <p className="text-[12px] text-[#6B7280]">Silakan lengkapi formulir pendaftaran diri Anda.</p>
+            </div>
+
+            {error && <p className="text-red-500 text-[13px] text-center mb-4">{error}</p>}
+
+            <form onSubmit={handleRegisterSubmit}>
+              <div className="mb-4">
+                <label className="block text-[12px] text-[#4B5563] mb-1.5 font-medium">Nama Lengkap</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  value={regData.nama}
+                  onChange={(e) => setRegData({...regData, nama: e.target.value})}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-[12px] text-[#4B5563] mb-1.5 font-medium">Jenis Kelamin</label>
+                <select
+                  className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  value={regData.jenisKelamin}
+                  onChange={(e) => setRegData({...regData, jenisKelamin: e.target.value})}
+                >
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-[12px] text-[#4B5563] mb-1.5 font-medium">Tanggal Lahir</label>
+                <input
+                  type="date"
+                  required
+                  className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  value={regData.tanggalLahir}
+                  onChange={(e) => setRegData({...regData, tanggalLahir: e.target.value})}
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-[12px] text-[#4B5563] mb-1.5 font-medium">Alamat Domisili</label>
+                <textarea
+                  className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                  rows={2}
+                  value={regData.alamat}
+                  onChange={(e) => setRegData({...regData, alamat: e.target.value})}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-70 mb-3"
+              >
+                {loading ? 'Memproses...' : 'Daftar Sekarang'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(false); setError(''); }}
+                className="w-full bg-[#F3F4F6] text-[#4B5563] py-2.5 rounded-md text-[13px] font-semibold hover:bg-[#E5E7EB] transition duration-200"
+              >
+                Batal / Kembali Log in
+              </button>
+            </form>
           </div>
-          <div className="mb-8 relative">
-            <Lock className="absolute left-3.5 top-3.5 text-[#6B7280] w-5 h-5" />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full pl-11 pr-4 py-3 bg-[#F8F9FA] border border-[#E5E7EB] rounded-md text-[14px] focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-[#2563EB] text-white py-3 rounded-md text-[14px] font-semibold hover:bg-blue-700 transition duration-200"
-          >
-            Login
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
