@@ -53,7 +53,7 @@ export default function App() {
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase
-          .from('settings')
+          .from('E-KIB_Setting')
           .select('*')
           .eq('id', 'global')
           .single();

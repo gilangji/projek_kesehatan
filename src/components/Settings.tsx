@@ -44,7 +44,7 @@ export default function Settings({ onBack, kibSettings, onUpdateKibSettings }: S
       setLocalSettings(newSettings);
 
       // 3. Save to Supabase Database (Permanently)
-      const { error: dbError } = await supabase.from('settings').upsert({
+      const { error: dbError } = await supabase.from('E-KIB_Setting').upsert({
         id: 'global',
         logo_url: newSettings.logoUrl,
         secondary_logo_url: newSettings.secondaryLogoUrl,

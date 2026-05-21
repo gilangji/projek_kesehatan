@@ -63,7 +63,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
       // Tolerate case insensitive RM
       const formattedRm = barcodeData.trim().toUpperCase();
       const { data, error } = await supabase
-        .from('patients')
+        .from('Data_Pasien')
         .select('*')
         .ilike('no_rm', formattedRm)
         .single();
@@ -138,7 +138,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
       const formattedTgl = parseTglLahir(loginTglLahir);
       
       const { data, error } = await supabase
-        .from('patients')
+        .from('Data_Pasien')
         .select('*')
         .or(`no_rm.ilike.%${formattedInput}%,nama.ilike.%${formattedInput}%`)
         .eq('tanggal_lahir', formattedTgl)
@@ -193,7 +193,7 @@ export default function Login({ onLogin, kibSettings }: LoginProps) {
         pj_no_telepon: ''
       };
 
-      const { error } = await supabase.from('patients').insert([newRow]);
+      const { error } = await supabase.from('Data_Pasien').insert([newRow]);
 
       if (error) throw error;
 

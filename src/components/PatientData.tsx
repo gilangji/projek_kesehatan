@@ -94,7 +94,7 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
     const fetchPatients = async () => {
       try {
         const { data, error } = await supabase
-          .from('patients')
+          .from('Data_Pasien')
           .select('*')
           .order('created_at', { ascending: false });
           
@@ -164,7 +164,7 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
             }
           };
 
-          const { error } = await supabase.from('patients').upsert(mapToRow(importedPatient));
+          const { error } = await supabase.from('Data_Pasien').upsert(mapToRow(importedPatient));
           if (!error) {
             newPatients.unshift(importedPatient);
             importedCount++;
@@ -245,7 +245,7 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
 
     try {
       const { error } = await supabase
-        .from('patients')
+        .from('Data_Pasien')
         .upsert(mapToRow(formData));
 
       if (error) throw error;
@@ -279,7 +279,7 @@ export default function PatientData({ mode, onBack, onPrint, kibSettings }: Pati
     if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
       try {
         const { error } = await supabase
-          .from('patients')
+          .from('Data_Pasien')
           .delete()
           .eq('no_rm', noRm);
 
